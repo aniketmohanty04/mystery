@@ -1,0 +1,101 @@
+/* ==========================================================================
+   Design Tokens — Mystery Box
+   All visual constants live here. Reference via var(--token-name) everywhere.
+   ========================================================================== */
+
+:root {
+  /* ---------------------------------------------------------------------- */
+  /* Color palette                                                           */
+  /* ---------------------------------------------------------------------- */
+
+  /* Backgrounds */
+  --col-bg:         #111110;   /* Warm near-black — page background         */
+  --col-surface:    #191918;   /* Slightly lifted — card surfaces           */
+  --col-surface-2:  #212120;   /* Further lifted — artifact blocks          */
+
+  /* Borders & separators */
+  --col-border:     #2c2c2a;   /* Subtle separator lines                    */
+  --col-border-2:   #383836;   /* Slightly more visible border              */
+
+  /* Text */
+  --col-text-1:     #e8e4dc;   /* Warm off-white — primary content          */
+  --col-text-2:     #8c8780;   /* Muted stone — secondary / narrative       */
+  --col-text-3:     #565451;   /* Dim — labels, metadata, locked states     */
+
+  /* Signal accent — muted amber */
+  --col-accent:     #c49b3c;   /* Primary accent — active states            */
+  --col-accent-dim: #6b5420;   /* Dim accent — unlocked borders             */
+  --col-accent-text:#c49b3c;   /* Accent text color                         */
+
+  /* Semantic states */
+  --col-success:    #5c8a5e;   /* Muted green — correct / solved            */
+  --col-error:      #965040;   /* Muted red-brown — incorrect               */
+  --col-info:       #8c8780;   /* Neutral info messages                     */
+
+  /* Monospace / code surfaces */
+  --col-mono-bg:    #0d0d0c;   /* Dark background for ciphertext blocks     */
+
+  /* ---------------------------------------------------------------------- */
+  /* Typography                                                              */
+  /* ---------------------------------------------------------------------- */
+
+  --font-editorial: Georgia, 'Times New Roman', serif;
+  --font-ui:        system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-mono:      'JetBrains Mono', 'Fira Code', Consolas, 'Courier New', monospace;
+
+  /* Type scale (1.250 minor third) */
+  --text-2xs:  0.6875rem;  /* 11px */
+  --text-xs:   0.75rem;    /* 12px */
+  --text-sm:   0.875rem;   /* 14px */
+  --text-base: 1rem;       /* 16px */
+  --text-lg:   1.125rem;   /* 18px */
+  --text-xl:   1.375rem;   /* 22px */
+  --text-2xl:  1.75rem;    /* 28px */
+  --text-3xl:  2.25rem;    /* 36px */
+
+  /* ---------------------------------------------------------------------- */
+  /* Spacing                                                                 */
+  /* ---------------------------------------------------------------------- */
+
+  --space-1:  0.25rem;
+  --space-2:  0.5rem;
+  --space-3:  0.75rem;
+  --space-4:  1rem;
+  --space-5:  1.25rem;
+  --space-6:  1.5rem;
+  --space-8:  2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* ---------------------------------------------------------------------- */
+  /* Layout                                                                  */
+  /* ---------------------------------------------------------------------- */
+
+  --content-max:    720px;
+  --sidebar-width:  216px;
+  --header-height:  56px;
+
+  /* ---------------------------------------------------------------------- */
+  /* Motion                                                                  */
+  /* ---------------------------------------------------------------------- */
+
+  --ease-out:      cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 120ms;
+  --duration-base: 220ms;
+
+  /* ---------------------------------------------------------------------- */
+  /* Geometry                                                                */
+  /* ---------------------------------------------------------------------- */
+
+  --radius-sm:  2px;
+  --radius-md:  3px;
+}
+
+/* Honour reduced-motion preference globally. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+  }
+}

@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Mystery Box — A multi-layered cryptographic puzzle experience." />
+    <title>Mystery Box</title>
+
+    <!-- JetBrains Mono for ciphertext, evidence IDs, and monospace elements -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="app">
+
+      <!-- ================================================================
+           Header
+           ================================================================ -->
+      <header class="app-header" role="banner">
+        <div class="app-header__inner">
+          <div class="app-header__identity">
+            <h1 class="app-title">Mystery Box</h1>
+            <p class="app-subtitle">EVIDENCE PROCESSING TERMINAL</p>
+          </div>
+          <button
+            class="btn btn--ghost btn--sm"
+            id="reset-btn"
+            type="button"
+            aria-label="Reset all puzzle progress"
+          >
+            Reset
+          </button>
+        </div>
+      </header>
+
+      <!-- ================================================================
+           Body: main content + progress sidebar
+           ================================================================ -->
+      <div class="app-body">
+
+        <!-- Active puzzle layer is rendered here by main.ts -->
+        <main
+          class="main-content"
+          aria-label="Current puzzle stage"
+        >
+          <div id="layer-container"></div>
+        </main>
+
+        <!-- Progress indicator — always visible, read-only -->
+        <aside class="progress-sidebar" aria-label="Puzzle stage progress">
+          <p class="progress-sidebar__heading">STAGES</p>
+          <nav aria-label="Puzzle stages">
+            <!-- Rendered by main.ts -->
+            <ol class="progress-nav" id="progress-nav"></ol>
+          </nav>
+        </aside>
+
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
