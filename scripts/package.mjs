@@ -12,7 +12,7 @@
 import { execFileSync } from 'node:child_process';
 import { renameSync, rmSync, statSync } from 'node:fs';
 
-const OUTPUT = 'mystery-box-phase2.zip';
+const OUTPUT = 'mystery-box.zip';
 const TEMP = `${OUTPUT}.tmp`;
 
 function git(...args) {

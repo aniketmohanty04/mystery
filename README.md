@@ -6,12 +6,13 @@ Designed with an **editorial forensic workstation / archival evidence terminal**
 
 ---
 
-## Current Status: Phase 2 Implemented & Audited
+## Current Status: Phase 5 Implemented & Playable (All Layers 1–5 Complete)
 
 - **Layer 1 (Cryptography):** **Implemented & Playable.** Intercepted transmission encoded with ROT-13. Classified evidence card, progressive hint disclosure, strict ASCII input normalization, SHA-256 hash validation, copy-to-clipboard, decoded badge, and explicit Continue progression.
 - **Layer 2 (DOM Inspection):** **Implemented & Playable.** Live DOM Mutation puzzle. Player inspects `#evidence-seal` in DevTools Elements panel and edits `data-seal="intact"` to `data-seal="verified"`. Detected via native `MutationObserver`, verified truthfully against the central state machine without leaking answers.
-- **Layer 3 (Cross-Tab Sync):** **Unlocked** upon solving Layer 2, but mechanics are pending Phase 3 approval. Displayed with a clear "Stage unlocked, implementation pending" state.
-- **Layers 4–5:** **Locked.** Unimplemented.
+- **Layer 3 (Cross-Tab Sync):** **Implemented & Playable.** Real-time multi-tab signal intercept. Dual-terminal carrier frequency alignment across browser tabs using native `BroadcastChannel` with `localStorage` storage-event fallback, heartbeat telemetry, and peer consensus.
+- **Layer 4 (Temporal Logic):** **Implemented & Playable.** Incident timeline reconstruction with interactive scrubber axis and strict 90-second entropy timer. Players sequence five corrupted evidence logs by deducing hardware RTC clock drift (-60m) and EST (UTC-4) timezone skew to establish universal UTC causality.
+- **Layer 5 (Final Reveal):** **Implemented & Playable.** Operation Omega — The Final Vault. Players synthesize the four forensic credentials recovered from prior investigation stages into the unified master vault key (`KNOWLEDGE-VERIFIED-SYNCHRONIZED-EV-955`). Features an interactive dossier matrix, quadrant token assembly, rotating mechanical blast door animation, and a comprehensive classified case debriefing screen.
 
 ---
 
@@ -70,12 +71,12 @@ npm install
 | Command | Description |
 |---|---|
 | `npm run dev` | Launch local Vite development server (http://localhost:5173) |
-| `npm test` | Run all 113 unit & lifecycle tests using Vitest |
+| `npm test` | Run all 161 unit & lifecycle tests using Vitest |
 | `npm run typecheck` | Run TypeScript type checks (`tsc --noEmit`) on `src/` |
 | `npm run typecheck:test` | Run TypeScript type checks (`tsc -p tsconfig.test.json --noEmit`) on `src/` and `tests/` |
 | `npm run build` | Run TypeScript checks and bundle for production (`tsc && vite build`) |
 | `npm run preview` | Preview production build locally |
-| `npm run package` | Build `mystery-box-phase2.zip` from the **committed** files via `git archive` (no `node_modules/`, `dist/` or `.git/`). Refuses to run on a dirty tree or outside a git repo, so nothing is silently left out |
+| `npm run package` | Build `mystery-box.zip` from the **committed** files via `git archive` (no `node_modules/`, `dist/` or `.git/`). Refuses to run on a dirty tree or outside a git repo, so nothing is silently left out |
 
 ---
 
@@ -95,5 +96,23 @@ npm install
 - **Interaction:** Open browser DevTools (<kbd>F12</kbd> or right-click → *Inspect*), locate `#evidence-seal` in the **Elements** tree, and change `data-seal="intact"` to `data-seal="verified"`.
 - **Accepted Value:** `verified` (case-insensitive, trimmed, strict ASCII).
 - **Progress:** Displays neutral `SEAL: CHECKING`, validates with the state machine, renders `SEAL: VERIFIED`, and presents the Continue button to unlock Layer 3.
+
+### Layer 3: Cross-Tab Sync
+- **Mechanic:** Open the puzzle URL in a second browser window or tab. The two terminals handshake over `BroadcastChannel` (or `localStorage` fallback).
+- **Carrier Alignment:** Node Alpha transmits `SIGNAL`, and Node Beta transmits `SYNCHRONIZED`.
+- **Accepted Answer:** `SIGNAL-SYNCHRONIZED` (case-insensitive, trimmed).
+
+### Layer 4: Temporal Logic
+- **Mechanic:** Sequence five forensic evidence logs in chronological order by normalizing to Universal Coordinated Time (UTC).
+- **Key Deductions:**
+  1. `EV-814` logged `01:55 UTC`, but suffered a `-60 minute` hardware RTC drift (actual: `02:55 UTC`).
+  2. `EV-127` logged `23:22 EST` (UTC-4); converted to UTC standard: `23:22 + 4h = 03:22 UTC`.
+- **Chronological Sequence:**
+  1. `EV-302` (02:15 UTC) — Perimeter Optical Fence Breach
+  2. `EV-814` (02:55 UTC true) — Terminal Console Authentication Override
+  3. `EV-409` (03:08 UTC) — Data Vault Archive Exfiltration
+  4. `EV-127` (03:22 UTC true) — Evidence Locker Magnetic Seal Severed
+  5. `EV-955` (03:45 UTC) — Emergency Facility Lockdown Initiated
+- **Accepted Answer:** `EV-302-EV-814-EV-409-EV-127-EV-955` (case-insensitive, spaces/underscores accepted).
 
 </details>

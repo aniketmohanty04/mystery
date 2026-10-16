@@ -115,6 +115,29 @@ describe('validateAnswer', () => {
       expect(await validateAnswer('dom-inspect', ' VeRiFiEd ')).toBe(true);
       expect(await validateAnswer('dom-inspect', 'verıfied')).toBe(false);
     });
+
+    it('Layer 3 accepts "SIGNAL-SYNCHRONIZED" and " signal_synchronized "', async () => {
+      expect(await validateAnswer('cross-tab', 'SIGNAL-SYNCHRONIZED')).toBe(true);
+      expect(await validateAnswer('cross-tab', ' signal_synchronized ')).toBe(true);
+      expect(await validateAnswer('cross-tab', 'WRONG-SIGNAL')).toBe(false);
+    });
+
+    it('Layer 4 accepts "EV-302-EV-814-EV-409-EV-127-EV-955" in varied casing and separators', async () => {
+      expect(await validateAnswer('temporal', 'EV-302-EV-814-EV-409-EV-127-EV-955')).toBe(true);
+      expect(await validateAnswer('temporal', 'ev-302-ev-814-ev-409-ev-127-ev-955')).toBe(true);
+      expect(await validateAnswer('temporal', ' EV-302 EV-814 EV-409 EV-127 EV-955 ')).toBe(true);
+      expect(await validateAnswer('temporal', 'ev-302_ev-814_ev-409_ev-127_ev-955')).toBe(true);
+      // Rejects incorrect order
+      expect(await validateAnswer('temporal', 'EV-814-EV-302-EV-409-EV-955-EV-127')).toBe(false);
+      expect(await validateAnswer('temporal', 'WRONG-CHRONOLOGY')).toBe(false);
+    });
+
+    it('validates Layer 5 (final-reveal) answer "KNOWLEDGE-VERIFIED-SYNCHRONIZED-EV-955"', async () => {
+      expect(await validateAnswer('final-reveal', 'KNOWLEDGE-VERIFIED-SYNCHRONIZED-EV-955')).toBe(true);
+      expect(await validateAnswer('final-reveal', 'knowledge verified synchronized ev-955')).toBe(true);
+      expect(await validateAnswer('final-reveal', '  knowledge_verified_synchronized_ev-955  ')).toBe(true);
+      expect(await validateAnswer('final-reveal', 'WRONG-VAULT-KEY')).toBe(false);
+    });
   });
 });
 

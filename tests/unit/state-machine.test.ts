@@ -78,8 +78,8 @@ describe('StateMachine', () => {
     expect(prog.find(e => e.id === 'final-reveal')?.status).toBe('locked');
   });
 
-  // 9. Solving Layer 2 (dom-inspect) transitions to solved and unlocks Layer 3 (cross-tab)
-  it('solves dom-inspect, marks it solved, unlocks cross-tab, and sets currentLayer to null', async () => {
+  // 9. Solving Layer 2 (dom-inspect) transitions to solved and activates Layer 3 (cross-tab)
+  it('solves dom-inspect, marks it solved, activates cross-tab, and advances currentLayer', async () => {
     await stateMachine.solve('crypto', CORRECT_ANSWER);
     expect(stateMachine.currentLayer).toBe('dom-inspect');
 
@@ -89,22 +89,46 @@ describe('StateMachine', () => {
     const prog = stateMachine.progression;
     expect(prog.find(e => e.id === 'crypto')?.status).toBe('solved');
     expect(prog.find(e => e.id === 'dom-inspect')?.status).toBe('solved');
-    // cross-tab is unlocked, but not active because Phase 3 is unimplemented
-    expect(prog.find(e => e.id === 'cross-tab')?.status).toBe('unlocked');
+    // cross-tab is active in Phase 3
+    expect(prog.find(e => e.id === 'cross-tab')?.status).toBe('active');
     expect(prog.find(e => e.id === 'temporal')?.status).toBe('locked');
     expect(prog.find(e => e.id === 'final-reveal')?.status).toBe('locked');
-    // When no implemented layer is playable, currentLayer must be null
-    expect(stateMachine.currentLayer).toBeNull();
+    expect(stateMachine.currentLayer).toBe('cross-tab');
   });
 
-  // 10. Cannot solve unlocked-but-unimplemented Layer 3
-  it('rejects solve() call for unlocked Layer 3 (cross-tab)', async () => {
+  // 10. Solves Layer 4 (temporal) activating Layer 5 (final-reveal) and completes Layer 5
+  it('solves Layer 3 (cross-tab) activating temporal, solves Layer 4 (temporal) activating final-reveal, and completes Layer 5', async () => {
     await stateMachine.solve('crypto', CORRECT_ANSWER);
     await stateMachine.solve('dom-inspect', 'verified');
-    expect(stateMachine.currentLayer).toBeNull();
+    expect(stateMachine.currentLayer).toBe('cross-tab');
 
-    const crossTabResult = await stateMachine.solve('cross-tab', 'ANY-ANSWER');
-    expect(crossTabResult).toBe('incorrect');
+    const crossTabResult = await stateMachine.solve('cross-tab', 'SIGNAL-SYNCHRONIZED');
+    expect(crossTabResult).toBe('accepted');
+    expect(stateMachine.progression.find(e => e.id === 'cross-tab')?.status).toBe('solved');
+    // temporal is active in Phase 4/5
+    expect(stateMachine.progression.find(e => e.id === 'temporal')?.status).toBe('active');
+    expect(stateMachine.currentLayer).toBe('temporal');
+
+    // Solve Layer 4 (temporal)
+    const temporalResult = await stateMachine.solve('temporal', 'EV-302-EV-814-EV-409-EV-127-EV-955');
+    expect(temporalResult).toBe('accepted');
+    expect(stateMachine.progression.find(e => e.id === 'temporal')?.status).toBe('solved');
+
+    // Layer 5 (final-reveal) is active in Phase 5
+    expect(stateMachine.progression.find(e => e.id === 'final-reveal')?.status).toBe('active');
+    expect(stateMachine.currentLayer).toBe('final-reveal');
+
+    // Wrong answer on Layer 5 rejected
+    const wrongResult = await stateMachine.solve('final-reveal', 'WRONG-VAULT-KEY');
+    expect(wrongResult).toBe('incorrect');
+    expect(stateMachine.currentLayer).toBe('final-reveal');
+
+    // Correct answer on Layer 5 accepted and completes all layers
+    const finalResult = await stateMachine.solve('final-reveal', 'KNOWLEDGE-VERIFIED-SYNCHRONIZED-EV-955');
+    expect(finalResult).toBe('accepted');
+    expect(stateMachine.progression.find(e => e.id === 'final-reveal')?.status).toBe('solved');
+    expect(stateMachine.currentLayer).toBeNull();
+    expect(stateMachine.progression.every(e => e.status === 'solved')).toBe(true);
   });
 
   // 11. Idempotent: second solve on already-solved layer returns false
@@ -122,7 +146,7 @@ describe('StateMachine', () => {
   it('reset() returns to initial state from any point in progression', async () => {
     await stateMachine.solve('crypto', CORRECT_ANSWER);
     await stateMachine.solve('dom-inspect', 'verified');
-    expect(stateMachine.currentLayer).toBeNull();
+    expect(stateMachine.currentLayer).toBe('cross-tab');
 
     stateMachine.reset();
     expect(stateMachine.currentLayer).toBe('crypto');
@@ -144,7 +168,19 @@ describe('StateMachine', () => {
 
     await stateMachine.solve('dom-inspect', 'verified');
     expect(events).toHaveLength(2);
-    expect(events[1]).toEqual({ from: 'dom-inspect', to: null });
+    expect(events[1]).toEqual({ from: 'dom-inspect', to: 'cross-tab' });
+
+    await stateMachine.solve('cross-tab', 'SIGNAL-SYNCHRONIZED');
+    expect(events).toHaveLength(3);
+    expect(events[2]).toEqual({ from: 'cross-tab', to: 'temporal' });
+
+    await stateMachine.solve('temporal', 'EV-302-EV-814-EV-409-EV-127-EV-955');
+    expect(events).toHaveLength(4);
+    expect(events[3]).toEqual({ from: 'temporal', to: 'final-reveal' });
+
+    await stateMachine.solve('final-reveal', 'KNOWLEDGE-VERIFIED-SYNCHRONIZED-EV-955');
+    expect(events).toHaveLength(5);
+    expect(events[4]).toEqual({ from: 'final-reveal', to: null });
   });
 
   // 14. Concurrent submissions: only one transition occurs and exactly one call succeeds
@@ -298,5 +334,132 @@ describe('StateMachine', () => {
 
     expect(heardByA).toHaveLength(1);
     expect(heardByB).toHaveLength(0);
+  });
+
+  // -------------------------------------------------------------------------
+  // Regression Suite: Startup and Sequential Progression Safeguards
+  // -------------------------------------------------------------------------
+  describe('Regression: Layer 1 Startup & Sequential Progression Gate', () => {
+    // 1. Fresh initialization starts at Layer 1
+    it('Fresh initialization starts at Layer 1 with status active and all subsequent layers locked', () => {
+      let saved: unknown = null;
+      const freshStore: StateStore = {
+        load: () => saved,
+        save: (d: unknown) => { saved = d; },
+        clear: () => { saved = null; },
+      };
+
+      const freshSm = new StateMachineImpl({
+        store: freshStore,
+      });
+
+      expect(freshSm.currentLayer).toBe('crypto');
+      const prog = freshSm.progression;
+      expect(prog[0]).toEqual({ id: 'crypto', status: 'active' });
+      expect(prog[1]).toEqual({ id: 'dom-inspect', status: 'locked' });
+      expect(prog[2]).toEqual({ id: 'cross-tab', status: 'locked' });
+      expect(prog[3]).toEqual({ id: 'temporal', status: 'locked' });
+      expect(prog[4]).toEqual({ id: 'final-reveal', status: 'locked' });
+      // Ensure no layer is marked solved
+      expect(prog.every(e => e.status !== 'solved')).toBe(true);
+    });
+
+    // 2. Completing Layer 1 unlocks Layer 2 according to the existing rules
+    it('Completing Layer 1 unlocks Layer 2 according to the existing rules', async () => {
+      let saved: unknown = null;
+      const store: StateStore = {
+        load: () => saved,
+        save: (d: unknown) => { saved = d; },
+        clear: () => { saved = null; },
+      };
+
+      const sm = new StateMachineImpl({ store });
+      expect(sm.currentLayer).toBe('crypto');
+
+      const solveResult = await sm.solve('crypto', CORRECT_ANSWER);
+      expect(solveResult).toBe('accepted');
+
+      expect(sm.currentLayer).toBe('dom-inspect');
+      expect(sm.progression.find(e => e.id === 'crypto')?.status).toBe('solved');
+      expect(sm.progression.find(e => e.id === 'dom-inspect')?.status).toBe('active');
+      expect(sm.progression.find(e => e.id === 'cross-tab')?.status).toBe('locked');
+      expect(sm.progression.find(e => e.id === 'temporal')?.status).toBe('locked');
+      expect(sm.progression.find(e => e.id === 'final-reveal')?.status).toBe('locked');
+    });
+
+    // 3. Completing Layer 2 unlocks Layer 3 according to the existing rules
+    it('Completing Layer 2 unlocks Layer 3 according to the existing rules', async () => {
+      let saved: unknown = null;
+      const store: StateStore = {
+        load: () => saved,
+        save: (d: unknown) => { saved = d; },
+        clear: () => { saved = null; },
+      };
+
+      const sm = new StateMachineImpl({ store });
+      await sm.solve('crypto', CORRECT_ANSWER);
+      expect(sm.currentLayer).toBe('dom-inspect');
+
+      const solveResult = await sm.solve('dom-inspect', 'verified');
+      expect(solveResult).toBe('accepted');
+
+      expect(sm.currentLayer).toBe('cross-tab');
+      expect(sm.progression.find(e => e.id === 'crypto')?.status).toBe('solved');
+      expect(sm.progression.find(e => e.id === 'dom-inspect')?.status).toBe('solved');
+      expect(sm.progression.find(e => e.id === 'cross-tab')?.status).toBe('active');
+      expect(sm.progression.find(e => e.id === 'temporal')?.status).toBe('locked');
+      expect(sm.progression.find(e => e.id === 'final-reveal')?.status).toBe('locked');
+    });
+
+    // 4. Implementing Layer 3 does not automatically activate it
+    it('Implementing Layer 3 does not automatically activate it prematurely', async () => {
+      let saved: unknown = null;
+      const store: StateStore = {
+        load: () => saved,
+        save: (d: unknown) => { saved = d; },
+        clear: () => { saved = null; },
+      };
+
+      // Even when 'cross-tab' is present in implementedLayers:
+      const sm = new StateMachineImpl({
+        store,
+        implementedLayers: new Set(['crypto', 'dom-inspect', 'cross-tab']),
+      });
+
+      // It MUST still start at Layer 1 (crypto), NOT cross-tab
+      expect(sm.currentLayer).toBe('crypto');
+      expect(sm.progression.find(e => e.id === 'cross-tab')?.status).toBe('locked');
+
+      // Direct solve attempts on cross-tab must be rejected
+      const directSolveResult = await sm.solve('cross-tab', 'SIGNAL-SYNCHRONIZED');
+      expect(directSolveResult).toBe('incorrect');
+      expect(sm.currentLayer).toBe('crypto');
+      expect(sm.progression.find(e => e.id === 'cross-tab')?.status).toBe('locked');
+    });
+
+    // 5. Reset returns to Layer 1
+    it('Reset returns to Layer 1 and clears persisted state after reaching Layer 3', async () => {
+      let saved: unknown = null;
+      const store: StateStore = {
+        load: () => saved,
+        save: (d: unknown) => { saved = d; },
+        clear: () => { saved = null; },
+      };
+
+      const sm = new StateMachineImpl({ store });
+      await sm.solve('crypto', CORRECT_ANSWER);
+      await sm.solve('dom-inspect', 'verified');
+      expect(sm.currentLayer).toBe('cross-tab');
+      expect(saved).not.toBeNull();
+
+      // Trigger reset
+      sm.reset();
+
+      expect(sm.currentLayer).toBe('crypto');
+      expect(sm.progression[0]).toEqual({ id: 'crypto', status: 'active' });
+      expect(sm.progression.find(e => e.id === 'dom-inspect')?.status).toBe('locked');
+      expect(sm.progression.find(e => e.id === 'cross-tab')?.status).toBe('locked');
+      expect(store.load()).toBeNull();
+    });
   });
 });

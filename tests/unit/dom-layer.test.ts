@@ -61,10 +61,9 @@ describe('DomLayer — Live DOM Mutation Puzzle', () => {
     // Check layer and state machine progression
     expect(cardStatus()).toBe('solved');
     expect(stateMachine.progression.find(e => e.id === 'dom-inspect')?.status).toBe('solved');
-    // Layer 3 (cross-tab) is unlocked
-    expect(stateMachine.progression.find(e => e.id === 'cross-tab')?.status).toBe('unlocked');
-    // currentLayer is null because Phase 3 is not implemented
-    expect(stateMachine.currentLayer).toBeNull();
+    // Layer 3 (cross-tab) is now active in Phase 3
+    expect(stateMachine.progression.find(e => e.id === 'cross-tab')?.status).toBe('active');
+    expect(stateMachine.currentLayer).toBe('cross-tab');
   });
 
   it('handles case-insensitive and trimmed values such as "  VERIFIED  "', async () => {

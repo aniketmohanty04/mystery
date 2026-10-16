@@ -22,9 +22,15 @@ export const LAYER_ORDER: readonly LayerId[] = [
  * 'unlocked' — indicating the user has progressed but the next challenge
  * has not yet been built.
  *
- * Phase 2: 'crypto' and 'dom-inspect' are implemented.
+ * Phase 5: 'crypto', 'dom-inspect', 'cross-tab', 'temporal', and 'final-reveal' are implemented.
  */
-export const IMPLEMENTED_LAYERS = new Set<LayerId>(['crypto', 'dom-inspect']);
+export const IMPLEMENTED_LAYERS = new Set<LayerId>([
+  'crypto',
+  'dom-inspect',
+  'cross-tab',
+  'temporal',
+  'final-reveal',
+]);
 
 /** Display metadata for each layer. */
 export const LAYER_META: Record<LayerId, { displayName: string; index: string }> = {

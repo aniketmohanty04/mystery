@@ -29,10 +29,16 @@ import type { LayerId } from './types.js';
  *
  * Layer 1 answer: MYSTERY-BOX-OPENS-WITH-KNOWLEDGE
  * Layer 2 answer: VERIFIED
+ * Layer 3 answer: SIGNAL-SYNCHRONIZED
+ * Layer 4 answer: EV-302-EV-814-EV-409-EV-127-EV-955
+ * Layer 5 answer: KNOWLEDGE-VERIFIED-SYNCHRONIZED-EV-955
  */
 const LAYER_HASHES: Partial<Record<LayerId, string>> = {
   'crypto': 'df8a3f2768f8e539e624cc6b2799af0c091f6c5fafee0b5089732a04d6cbcf23',
   'dom-inspect': '8766e017df3d4497840e53fa7594a954fd6e68b1b0bf7528045514bc774ea499',
+  'cross-tab': '6d11a6aceaa9f12543f00c1b38d973cdda534fdbac24a0dfabe49f69a7e0c9e4',
+  'temporal': 'e0c5ec4fa48d091be9d29872c919aff87370ff89fd139c63b90ff81cfa6721d3',
+  'final-reveal': '772be0aff4c1a046b0ffa538b340cc90a338a12743c565e04230aad2090c0d3e',
 };
 
 /**
