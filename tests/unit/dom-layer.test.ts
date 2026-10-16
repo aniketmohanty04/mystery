@@ -193,4 +193,71 @@ describe('DomLayer — Live DOM Mutation Puzzle', () => {
     expect(hintsToggle.disabled).toBe(true);
     expect(hintsToggle.textContent).toBe('All hints revealed');
   });
+
+  it('does NOT show VERIFIED when the state machine rejects (e.g. stateMachine not on Layer 2)', async () => {
+    // Reset state machine back to initial Layer 1 (crypto)
+    stateMachine.reset();
+    expect(stateMachine.currentLayer).toBe('crypto');
+
+    const sealEl = container.querySelector('#evidence-seal') as HTMLElement;
+    const badge = container.querySelector('#seal-status-badge');
+    const msg = container.querySelector('#seal-feedback-message');
+
+    // Mutate to verified while stateMachine is on crypto
+    sealEl.setAttribute('data-seal', 'verified');
+
+    await vi.waitFor(() => {
+      // Must show SEAL: REJECTED, NOT SEAL: VERIFIED
+      expect(badge?.textContent).toBe('SEAL: REJECTED');
+      expect(msg?.textContent).toContain('Seal override rejected');
+    });
+
+    // Layer must not be solved
+    expect(layer.status).not.toBe('solved');
+    expect(container.querySelector('#dom-continue')).toBeNull();
+  });
+
+  it('shows Continue button on solve and dispatches layer:continue on click', async () => {
+    const sealEl = container.querySelector('#evidence-seal') as HTMLElement;
+    let continueFired = false;
+    container.addEventListener('layer:continue', () => {
+      continueFired = true;
+    });
+
+    sealEl.setAttribute('data-seal', 'verified');
+
+    await vi.waitFor(() => {
+      expect(layer.status).toBe('solved');
+    });
+
+    const continueBtn = container.querySelector('#dom-continue') as HTMLButtonElement;
+    expect(continueBtn).not.toBeNull();
+    continueBtn.click();
+    expect(continueFired).toBe(true);
+  });
+
+  it('wrong-value feedback message does not print the expected value "verified"', async () => {
+    const sealEl = container.querySelector('#evidence-seal') as HTMLElement;
+    const msg = container.querySelector('#seal-feedback-message');
+
+    sealEl.setAttribute('data-seal', 'wrong-seal');
+
+    await vi.waitFor(() => {
+      expect(msg?.textContent).toContain('Attribute set to "wrong-seal"');
+    });
+
+    expect(msg?.textContent).not.toContain('Expected attribute value');
+    expect(msg?.textContent).not.toContain('verified');
+  });
+
+  it('removing data-seal attribute does not crash or solve', async () => {
+    const sealEl = container.querySelector('#evidence-seal') as HTMLElement;
+    expect(() => {
+      sealEl.removeAttribute('data-seal');
+    }).not.toThrow();
+
+    await new Promise(r => setTimeout(r, 20));
+    expect(layer.status).toBe('active');
+  });
 });
+

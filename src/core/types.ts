@@ -37,6 +37,8 @@ export interface GameState {
   progression: LayerEntry[];
 }
 
+export type SolveResult = 'accepted' | 'incorrect' | 'busy' | 'cancelled';
+
 /**
  * PuzzleLayer is the contract every puzzle layer module must implement.
  * Each layer is self-contained: it owns its own DOM, event listeners,
@@ -61,11 +63,12 @@ export interface PuzzleLayer {
 
   /**
    * Attempt to submit an answer.
-   * Returns true if the answer is correct and the layer advances.
-   * Returns false for wrong, empty, or repeated submissions — never throws.
+   * Returns 'accepted' if the answer is correct and the layer advances.
+   * Returns 'incorrect', 'busy', or 'cancelled' on failure — never throws.
    */
-  submitAnswer(answer: string): Promise<boolean>;
+  submitAnswer(answer: string): Promise<SolveResult>;
 }
+
 
 /**
  * Pluggable storage abstraction for game progression state.

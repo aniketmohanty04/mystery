@@ -155,4 +155,49 @@ describe('CryptoLayer DOM & Interaction', () => {
     });
     expect(writeTextMock).toHaveBeenCalledWith('ZLFGREL-OBK-BCRAF-JVGU-XABJYRQTR');
   });
+
+  it('renders Continue button when solved and dispatches layer:continue on click', async () => {
+    const form = container.querySelector('.answer-form') as HTMLFormElement;
+    const input = container.querySelector('#crypto-answer') as HTMLInputElement;
+
+    let continueEventFired = false;
+    container.addEventListener('layer:continue', () => {
+      continueEventFired = true;
+    });
+
+    input.value = 'MYSTERY-BOX-OPENS-WITH-KNOWLEDGE';
+    form.dispatchEvent(new Event('submit', { cancelable: true }));
+
+    await vi.waitFor(() => {
+      expect(container.querySelector('#crypto-continue')).not.toBeNull();
+    });
+
+    const continueBtn = container.querySelector('#crypto-continue') as HTMLButtonElement;
+    expect(continueBtn.textContent).toContain('Continue');
+    continueBtn.click();
+    expect(continueEventFired).toBe(true);
+  });
+
+  it('busy submit does not show "still encrypted" error', async () => {
+    const input = container.querySelector('#crypto-answer') as HTMLInputElement;
+    const status = container.querySelector('#crypto-status') as HTMLElement;
+
+    // Simulate calling submitAnswer when already solving or busy
+    // We can spy on stateMachine.solve to return 'busy'
+    const solveSpy = vi.spyOn(stateMachine, 'solve').mockResolvedValueOnce('busy');
+
+    input.value = 'MYSTERY-BOX-OPENS-WITH-KNOWLEDGE';
+    // Submit answer through layer's form
+    const form = container.querySelector('.answer-form') as HTMLFormElement;
+    form.dispatchEvent(new Event('submit', { cancelable: true }));
+
+    await vi.waitFor(() => {
+      expect(solveSpy).toHaveBeenCalled();
+    });
+
+    // status text must NOT be "Transmission still encrypted"
+    expect(status.textContent).not.toBe('Transmission still encrypted. Check your decoding.');
+    solveSpy.mockRestore();
+  });
 });
+

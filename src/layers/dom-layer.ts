@@ -1,4 +1,4 @@
-import type { PuzzleLayer, LayerId, LayerStatus } from '../core/types.js';
+import type { PuzzleLayer, LayerId, LayerStatus, SolveResult } from '../core/types.js';
 import { stateMachine } from '../core/state-machine.js';
 
 /**
@@ -36,6 +36,7 @@ export class DomLayer implements PuzzleLayer {
   private observer: MutationObserver | null = null;
   private hintsRevealed = 0;
   private isSolved = false;
+  private isSubmitting = false;
 
   // -- PuzzleLayer interface ------------------------------------------------
 
@@ -79,7 +80,7 @@ export class DomLayer implements PuzzleLayer {
     this.container = null;
   }
 
-  async submitAnswer(answer: string): Promise<boolean> {
+  async submitAnswer(answer: string): Promise<SolveResult> {
     return stateMachine.solve(this.id, answer);
   }
 
@@ -131,33 +132,76 @@ export class DomLayer implements PuzzleLayer {
   }
 
   private async handleSuccess(): Promise<void> {
-    if (this.isSolved) return;
-    this.isSolved = true;
-    this.stopObserving();
-
-    this.status = 'solved';
-    if (this.root) {
-      this.root.dataset.status = 'solved';
-    }
+    if (this.isSolved || this.isSubmitting) return;
+    this.isSubmitting = true;
 
     const badge = this.root?.querySelector<HTMLElement>('#seal-status-badge');
     const msg = this.root?.querySelector<HTMLElement>('#seal-feedback-message');
-    const headerBadge = this.root?.querySelector<HTMLElement>('.layer-meta__badge');
 
+    // Show neutral checking state while validating with state machine
     if (badge) {
-      badge.className = 'evidence-seal__badge badge badge--solved';
-      badge.textContent = 'SEAL: VERIFIED';
-    }
-    if (headerBadge) {
-      headerBadge.className = 'layer-meta__badge badge badge--solved';
-      headerBadge.textContent = 'VERIFIED';
+      badge.className = 'evidence-seal__badge badge badge--active';
+      badge.textContent = 'SEAL: CHECKING';
     }
     if (msg) {
-      msg.className = 'evidence-seal__message evidence-seal__message--success';
-      msg.textContent = 'Seal integrity verified. Manual override authenticated. Clearance granted to Layer 03.';
+      msg.className = 'evidence-seal__message evidence-seal__message--info';
+      msg.textContent = 'Attribute verified. Validating seal clearance with state machine…';
     }
 
-    await this.submitAnswer(EXPECTED_VALUE);
+    const result = await this.submitAnswer(EXPECTED_VALUE);
+    this.isSubmitting = false;
+
+    if (result === 'accepted') {
+      this.isSolved = true;
+      this.stopObserving();
+
+      this.status = 'solved';
+      if (this.root) {
+        this.root.dataset.status = 'solved';
+      }
+
+      if (badge) {
+        badge.className = 'evidence-seal__badge badge badge--solved';
+        badge.textContent = 'SEAL: VERIFIED';
+      }
+      const headerBadge = this.root?.querySelector<HTMLElement>('.layer-meta__badge');
+      if (headerBadge) {
+        headerBadge.className = 'layer-meta__badge badge badge--solved';
+        headerBadge.textContent = 'VERIFIED';
+      }
+      if (msg) {
+        msg.className = 'evidence-seal__message evidence-seal__message--success';
+        msg.textContent = 'Seal integrity verified. Manual override authenticated. Clearance granted to Layer 03.';
+      }
+      this.showContinueButton();
+    } else {
+      // Roll back UI to neutral failure state and keep observing so player can retry
+      if (badge) {
+        badge.className = 'evidence-seal__badge badge badge--error';
+        badge.textContent = 'SEAL: REJECTED';
+      }
+      if (msg) {
+        msg.className = 'evidence-seal__message evidence-seal__message--error';
+        msg.textContent = 'Seal override rejected by security policy. Modify the attribute to retry.';
+      }
+    }
+  }
+
+  private showContinueButton(): void {
+    if (!this.root) return;
+    let continueBtn = this.root.querySelector<HTMLButtonElement>('#dom-continue');
+    if (!continueBtn) {
+      continueBtn = document.createElement('button');
+      continueBtn.type = 'button';
+      continueBtn.className = 'btn btn--primary layer-card__continue';
+      continueBtn.id = 'dom-continue';
+      continueBtn.textContent = 'Continue to Next Stage';
+      continueBtn.addEventListener('click', () => {
+        this.root?.dispatchEvent(new CustomEvent('layer:continue', { bubbles: true }));
+      });
+      const content = this.root.querySelector('.evidence-seal__content');
+      content?.appendChild(continueBtn);
+    }
   }
 
   private handleIncorrectMutation(value: string): void {
@@ -170,9 +214,10 @@ export class DomLayer implements PuzzleLayer {
     }
     if (msg) {
       msg.className = 'evidence-seal__message evidence-seal__message--error';
-      msg.textContent = `Attribute set to "${value}". Tamper-evident seal rejected. Expected attribute value: "${EXPECTED_VALUE}".`;
+      msg.textContent = `Attribute set to "${value}". Tamper-evident seal rejected.`;
     }
   }
+
 
   private updateVisualDisplay(value: string): void {
     const displaySpan = this.root?.querySelector<HTMLElement>('#seal-display-value');

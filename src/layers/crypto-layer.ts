@@ -1,17 +1,11 @@
-import type { PuzzleLayer, LayerId, LayerStatus } from '../core/types.js';
+import type { PuzzleLayer, LayerId, LayerStatus, SolveResult } from '../core/types.js';
 import { stateMachine } from '../core/state-machine.js';
-import { caesarDecode } from '../utils/crypto-utils.js';
 
 // ---------------------------------------------------------------------------
 // Puzzle constants
 // ---------------------------------------------------------------------------
 
 const CIPHER_TEXT = 'ZLFGREL-OBK-BCRAF-JVGU-XABJYRQTR';
-const SHIFT = 13;
-
-// Decoded at module load for internal verification — never shown to user.
-const _PLAIN_TEXT = caesarDecode(CIPHER_TEXT, SHIFT);
-void _PLAIN_TEXT; // Suppress unused-variable warning. Used in dev console only.
 
 const HINTS: readonly string[] = [
   'The shift is 13. This is known as ROT-13.',
@@ -67,9 +61,10 @@ export class CryptoLayer implements PuzzleLayer {
     this.formHandler = null;
   }
 
-  async submitAnswer(answer: string): Promise<boolean> {
+  async submitAnswer(answer: string): Promise<SolveResult> {
     return stateMachine.solve(this.id, answer);
   }
+
 
   // -- DOM construction -----------------------------------------------------
 
@@ -247,15 +242,21 @@ export class CryptoLayer implements PuzzleLayer {
     // Disable form during async validation.
     if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Checking…'; }
 
-    const correct = await this.submitAnswer(answer);
+    const result = await this.submitAnswer(answer);
 
-    if (correct) {
+    if (result === 'accepted') {
       this.setStatus(statusEl, 'success', 'Transmission decoded. Clearance granted.');
       this.markSolved();
-    } else {
+    } else if (result === 'incorrect') {
       this.setStatus(statusEl, 'error', 'Transmission still encrypted. Check your decoding.');
       if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit'; }
       input?.focus();
+    } else {
+      // 'busy' or 'cancelled': do not show misleading "still encrypted" error.
+      if (submitBtn && this.status !== 'solved') {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit';
+      }
     }
   }
 
@@ -286,7 +287,27 @@ export class CryptoLayer implements PuzzleLayer {
     const submitBtn = this.root.querySelector<HTMLButtonElement>('#crypto-submit');
     if (input) input.disabled = true;
     if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Solved'; }
+
+    this.showContinueButton();
   }
+
+  private showContinueButton(): void {
+    if (!this.root) return;
+    let continueBtn = this.root.querySelector<HTMLButtonElement>('#crypto-continue');
+    if (!continueBtn) {
+      continueBtn = document.createElement('button');
+      continueBtn.type = 'button';
+      continueBtn.className = 'btn btn--primary layer-card__continue';
+      continueBtn.id = 'crypto-continue';
+      continueBtn.textContent = 'Continue to Next Stage';
+      continueBtn.addEventListener('click', () => {
+        this.root?.dispatchEvent(new CustomEvent('layer:continue', { bubbles: true }));
+      });
+      const form = this.root.querySelector('.answer-form');
+      form?.appendChild(continueBtn);
+    }
+  }
+
 
   private setInputsDisabled(disabled: boolean): void {
     if (!this.root) return;

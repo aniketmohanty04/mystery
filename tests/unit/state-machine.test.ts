@@ -27,7 +27,7 @@ describe('StateMachine', () => {
   // 2. Cannot solve a non-active layer
   it('rejects solve() call for a layer that is not currently active (dom-inspect)', async () => {
     const result = await stateMachine.solve('dom-inspect', CORRECT_ANSWER);
-    expect(result).toBe(false);
+    expect(result).toBe('incorrect');
     // State must not change
     expect(stateMachine.currentLayer).toBe('crypto');
     expect(stateMachine.progression.find(e => e.id === 'crypto')?.status).toBe('active');
@@ -36,14 +36,14 @@ describe('StateMachine', () => {
   // 3. Cannot solve with a locked layer
   it('rejects solve() call for a locked layer (cross-tab)', async () => {
     const result = await stateMachine.solve('cross-tab', CORRECT_ANSWER);
-    expect(result).toBe(false);
+    expect(result).toBe('incorrect');
     expect(stateMachine.currentLayer).toBe('crypto');
   });
 
   // 4. Wrong answer does not advance state
   it('returns false for an incorrect answer and keeps crypto active', async () => {
     const result = await stateMachine.solve('crypto', WRONG_ANSWER);
-    expect(result).toBe(false);
+    expect(result).toBe('incorrect');
     expect(stateMachine.currentLayer).toBe('crypto');
     expect(stateMachine.progression.find(e => e.id === 'crypto')?.status).toBe('active');
   });
@@ -51,8 +51,9 @@ describe('StateMachine', () => {
   // 5. Correct answer transitions the state machine
   it('returns true for the correct answer and advances progression', async () => {
     const result = await stateMachine.solve('crypto', CORRECT_ANSWER);
-    expect(result).toBe(true);
+    expect(result).toBe('accepted');
   });
+
 
   // 6. crypto becomes 'solved' after a correct answer
   it('marks crypto as solved after the correct answer', async () => {
@@ -83,7 +84,7 @@ describe('StateMachine', () => {
     expect(stateMachine.currentLayer).toBe('dom-inspect');
 
     const domResult = await stateMachine.solve('dom-inspect', 'verified');
-    expect(domResult).toBe(true);
+    expect(domResult).toBe('accepted');
 
     const prog = stateMachine.progression;
     expect(prog.find(e => e.id === 'crypto')?.status).toBe('solved');
@@ -103,18 +104,18 @@ describe('StateMachine', () => {
     expect(stateMachine.currentLayer).toBeNull();
 
     const crossTabResult = await stateMachine.solve('cross-tab', 'ANY-ANSWER');
-    expect(crossTabResult).toBe(false);
+    expect(crossTabResult).toBe('incorrect');
   });
 
   // 11. Idempotent: second solve on already-solved layer returns false
   it('returns false if solve() is called again on a layer already solved', async () => {
     await stateMachine.solve('crypto', CORRECT_ANSWER);
     const second = await stateMachine.solve('crypto', CORRECT_ANSWER);
-    expect(second).toBe(false);
+    expect(second).toBe('incorrect');
 
     await stateMachine.solve('dom-inspect', 'verified');
     const secondDom = await stateMachine.solve('dom-inspect', 'verified');
-    expect(secondDom).toBe(false);
+    expect(secondDom).toBe('incorrect');
   });
 
   // 12. reset() restores full initial state
@@ -158,8 +159,8 @@ describe('StateMachine', () => {
       stateMachine.solve('crypto', CORRECT_ANSWER),
     ]);
 
-    // Exactly one call must succeed, the other must return false
-    expect([res1, res2].sort()).toEqual([false, true]);
+    // Exactly one call must succeed ('accepted'), the other must return 'busy'
+    expect([res1, res2].sort()).toEqual(['accepted', 'busy']);
     // Exactly one transition event must have been emitted
     expect(events).toHaveLength(1);
     expect(events[0].from).toBe('crypto');
@@ -173,9 +174,8 @@ describe('StateMachine', () => {
     stateMachine.reset();
     const result = await solvePromise;
 
-    // Must not be successful / accepted
-    expect(result).not.toBe(true);
-    expect(result).not.toBe('accepted');
+    // Must return 'cancelled'
+    expect(result).toBe('cancelled');
 
     // State must remain strictly initial: crypto active, all others locked
     expect(stateMachine.currentLayer).toBe('crypto');
@@ -209,12 +209,13 @@ describe('StateMachine', () => {
     resolveValidation(true);
     const result = await solvePromise;
 
-    expect(result).toBe(false);
+    expect(result).toBe('cancelled');
     expect(sm.currentLayer).toBe('crypto');
     expect(sm.progression[0].status).toBe('active');
     expect(sm.progression[1].status).toBe('locked');
     expect(memoryStore.load()).toBeNull();
   });
+
 
   // 17. Injected implementedLayers
   it('supports injecting implementedLayers for future phase progression', async () => {

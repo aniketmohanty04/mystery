@@ -55,7 +55,26 @@ function renderProgress(): void {
 /** Mounted layer instance — tracked so we can destroy it on transition. */
 let mountedLayer: { destroy: () => void } | null = null;
 
-function renderLayer(): void {
+// ---------------------------------------------------------------------------
+// Reset
+// ---------------------------------------------------------------------------
+
+function bindReset(): void {
+  const btn = document.getElementById('reset-btn');
+  btn?.addEventListener('click', () => {
+    if (confirm('Reset all puzzle progress?')) {
+      stateMachine.reset();
+      renderProgress();
+      renderLayer(true);
+    }
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Boot
+// ---------------------------------------------------------------------------
+
+export function renderLayer(shouldFocusHeading = false): void {
   const container = document.getElementById('layer-container');
   if (!container) return;
 
@@ -71,6 +90,13 @@ function renderLayer(): void {
     layer.mount(container);
     layer.activate();
     mountedLayer = layer;
+    if (shouldFocusHeading) {
+      const heading = container.querySelector<HTMLElement>('.layer-card__title');
+      if (heading) {
+        heading.setAttribute('tabindex', '-1');
+        heading.focus();
+      }
+    }
     return;
   }
 
@@ -79,6 +105,13 @@ function renderLayer(): void {
     layer.mount(container);
     layer.activate();
     mountedLayer = layer;
+    if (shouldFocusHeading) {
+      const heading = container.querySelector<HTMLElement>('.layer-card__title');
+      if (heading) {
+        heading.setAttribute('tabindex', '-1');
+        heading.focus();
+      }
+    }
     return;
   }
 
@@ -86,6 +119,13 @@ function renderLayer(): void {
   const unlocked = stateMachine.progression.find(e => e.status === 'unlocked');
   if (unlocked) {
     renderUnlockedPlaceholder(container, unlocked.id);
+    if (shouldFocusHeading) {
+      const heading = container.querySelector<HTMLElement>('.layer-card__title');
+      if (heading) {
+        heading.setAttribute('tabindex', '-1');
+        heading.focus();
+      }
+    }
     return;
   }
 
@@ -127,34 +167,32 @@ function renderUnlockedPlaceholder(container: HTMLElement, id: LayerId): void {
   container.appendChild(el);
 }
 
-// ---------------------------------------------------------------------------
-// Reset
-// ---------------------------------------------------------------------------
+export function init(): void {
 
-function bindReset(): void {
-  const btn = document.getElementById('reset-btn');
-  btn?.addEventListener('click', () => {
-    if (confirm('Reset all puzzle progress?')) {
-      stateMachine.reset();
-      renderProgress();
-      renderLayer();
-    }
-  });
-}
-
-// ---------------------------------------------------------------------------
-// Boot
-// ---------------------------------------------------------------------------
-
-function init(): void {
   renderProgress();
-  renderLayer();
+  renderLayer(false);
   bindReset();
 
-  stateMachine.on('transition', () => {
+  const container = document.getElementById('layer-container');
+  // Success-feedback lifecycle:
+  // When a layer is solved, the state machine saves state and emits 'transition',
+  // which immediately updates the progress indicator. However, main.ts defers
+  // rendering the next layer until the player clicks the "Continue" button on the
+  // solved layer card. This ensures success badges and feedback remain visible.
+  container?.addEventListener('layer:continue', () => {
     renderProgress();
-    renderLayer();
+    renderLayer(true);
+  });
+
+  stateMachine.on('transition', () => {
+    // Immediately update progress indicator; defer card re-render until Continue is clicked.
+    renderProgress();
   });
 }
 
-document.addEventListener('DOMContentLoaded', init);
+if (typeof document !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', init);
+}
+
+export { renderProgress };
+

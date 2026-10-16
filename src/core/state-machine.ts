@@ -1,4 +1,4 @@
-import type { GameState, LayerId, LayerEntry, StateStore } from './types.js';
+import type { GameState, LayerId, LayerEntry, StateStore, SolveResult } from './types.js';
 import type { TransitionPayload } from './event-bus.js';
 import { validateAnswer as defaultValidateAnswer } from './answer-validator.js';
 import { saveState, loadState, clearState, sessionStore } from './storage.js';
@@ -70,22 +70,21 @@ export class StateMachineImpl {
   /**
    * Attempt to solve the given layer with the provided answer.
    *
-   * Returns true if:
-   *   - layerId matches the currently active layer
-   *   - the layer's status is 'active' (not already solved or locked)
-   *   - the answer hash matches the expected hash
+   * Returns:
+   *   - 'accepted'   if answer matches and progression advances
+   *   - 'incorrect'  if answer is wrong or layer is not active
+   *   - 'busy'       if another solve operation is currently in flight
+   *   - 'cancelled'  if reset() was called while validation was hashing
    *
-   * Returns false in all other cases — no state change occurs on failure.
    * Safe to call repeatedly and concurrently; will not duplicate transitions.
-   * A solve started before reset() will abort without mutating state.
    */
-  async solve(layerId: LayerId, answer: string): Promise<boolean> {
-    if (this.isSolving) return false;
-    if (this.state.currentLayer === null) return false;
-    if (layerId !== this.state.currentLayer) return false;
+  async solve(layerId: LayerId, answer: string): Promise<SolveResult> {
+    if (this.isSolving) return 'busy';
+    if (this.state.currentLayer === null) return 'incorrect';
+    if (layerId !== this.state.currentLayer) return 'incorrect';
 
     const entry = this.state.progression.find(e => e.id === layerId);
-    if (!entry || entry.status !== 'active') return false;
+    if (!entry || entry.status !== 'active') return 'incorrect';
 
     const currentGen = this.generation;
     this.isSolving = true;
@@ -94,14 +93,14 @@ export class StateMachineImpl {
 
       // Abort if reset() was called while hashing
       if (this.generation !== currentGen) {
-        return false;
+        return 'cancelled';
       }
-      if (!correct) return false;
+      if (!correct) return 'incorrect';
 
       // Re-find entry in the CURRENT state; never reuse a stale reference.
       const freshEntry = this.state.progression.find(e => e.id === layerId);
       if (!freshEntry || freshEntry.status !== 'active' || this.state.currentLayer !== layerId) {
-        return false;
+        return 'cancelled';
       }
 
       // Mark current layer solved.
@@ -124,13 +123,14 @@ export class StateMachineImpl {
 
       saveState(this.state, this.store);
       eventBus.emit('transition', { from: layerId, to: this.state.currentLayer });
-      return true;
+      return 'accepted';
     } finally {
       if (this.generation === currentGen) {
         this.isSolving = false;
       }
     }
   }
+
 
   // -- Events ---------------------------------------------------------------
 
