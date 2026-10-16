@@ -1,5 +1,6 @@
 import type { PuzzleLayer, LayerId, LayerStatus, SolveResult } from '../core/types.js';
 import { stateMachine } from '../core/state-machine.js';
+import { normalizeAnswer } from '../core/answer-validator.js';
 
 /**
  * SECURITY & PUZZLE ARCHITECTURE NOTE:
@@ -57,9 +58,10 @@ export class DomLayer implements PuzzleLayer {
 
     // Check if the element was already mutated prior to activate call
     const currentVal = this.targetElement?.getAttribute(EXPECTED_ATTRIBUTE);
-    if (currentVal && currentVal.trim().toLowerCase() === EXPECTED_VALUE && !this.isSolved) {
+    if (currentVal && normalizeAnswer(currentVal) === 'VERIFIED' && !this.isSolved) {
       void this.handleSuccess();
     }
+
   }
 
   lock(): void {
@@ -119,15 +121,15 @@ export class DomLayer implements PuzzleLayer {
       const currentValue = this.targetElement.getAttribute(EXPECTED_ATTRIBUTE);
       if (currentValue === null) continue;
 
-      const normalized = currentValue.trim().toLowerCase();
       this.updateVisualDisplay(currentValue);
 
-      if (normalized === EXPECTED_VALUE) {
+      if (normalizeAnswer(currentValue) === 'VERIFIED') {
         void this.handleSuccess();
         break;
       } else {
         this.handleIncorrectMutation(currentValue);
       }
+
     }
   }
 

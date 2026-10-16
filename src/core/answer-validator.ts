@@ -47,14 +47,42 @@ export async function sha256(text: string): Promise<string> {
     .join('');
 }
 
+const SEPARATOR_REGEX = /[\s_\-\u2010\u2011\u2013\u2014]+/g;
+const ASCII_ALPHANUMERIC_REGEX = /^[A-Za-z0-9-]+$/;
+
 /**
- * Normalize an answer before validation:
- * - Strip leading/trailing whitespace
- * - Convert to uppercase
- * Empty strings (after trim) are rejected immediately.
+ * Normalize an answer before validation.
+ *
+ * Normalization pipeline (applied in strict order):
+ * 1. trim() whitespace.
+ * 2. Collapse runs of permitted separators to a single '-':
+ *    whitespace (including NBSP), underscore, hyphen-minus, U+2010,
+ *    non-breaking hyphen U+2011, en dash (U+2013), em dash (U+2014).
+ *    Strip leading/trailing '-'.
+ * 3. Reject if any remaining character is outside [A-Za-z0-9-].
+ *    NOTE: NFKC normalization is deliberately NOT applied to letters here
+ *    to prevent unicode lookalikes (such as dotless 'ı', long 'ſ', Kelvin sign,
+ *    or fullwidth letters) from folding into ASCII before validation.
+ * 4. toUpperCase().
+ *
+ * Returns null if the input is empty, separator-only, or contains non-ASCII characters.
  */
-function normalize(raw: string): string {
-  return raw.trim().toUpperCase();
+export function normalizeAnswer(raw: string): string | null {
+  // 1. Trim
+  let s = raw.trim();
+  if (!s) return null;
+
+  // 2. Collapse permitted separators to '-' and strip leading/trailing '-'
+  s = s.replace(SEPARATOR_REGEX, '-').replace(/^-+|-+$/g, '');
+  if (!s) return null;
+
+  // 3. Reject any character outside [A-Za-z0-9-] before case folding
+  if (!ASCII_ALPHANUMERIC_REGEX.test(s)) {
+    return null;
+  }
+
+  // 4. toUpperCase()
+  return s.toUpperCase();
 }
 
 /**
@@ -66,7 +94,7 @@ export async function validateAnswer(
   layerId: LayerId,
   rawAnswer: string,
 ): Promise<boolean> {
-  const normalized = normalize(rawAnswer);
+  const normalized = normalizeAnswer(rawAnswer);
   if (!normalized) return false;
 
   const expectedHash = LAYER_HASHES[layerId];
@@ -75,3 +103,4 @@ export async function validateAnswer(
   const actualHash = await sha256(normalized);
   return actualHash === expectedHash;
 }
+

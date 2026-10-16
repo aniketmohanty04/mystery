@@ -54,7 +54,70 @@ describe('validateAnswer', () => {
   it('returns false for a layer with no registered hash', async () => {
     expect(await validateAnswer('cross-tab', CORRECT)).toBe(false);
   });
+
+  // Step 4 normalization requirements:
+  describe('normalization requirements (separators and unicode lookalike rejection)', () => {
+    it('accepts spaces instead of hyphens', async () => {
+      expect(await validateAnswer(LAYER, 'MYSTERY BOX OPENS WITH KNOWLEDGE')).toBe(true);
+      expect(await validateAnswer(LAYER, 'mystery box opens with knowledge')).toBe(true);
+    });
+
+    it('accepts underscores as separators', async () => {
+      expect(await validateAnswer(LAYER, 'MYSTERY_BOX_OPENS_WITH_KNOWLEDGE')).toBe(true);
+    });
+
+    it('accepts en dash (U+2013) and em dash (U+2014)', async () => {
+      expect(await validateAnswer(LAYER, 'MYSTERY\u2013BOX\u2013OPENS\u2013WITH\u2013KNOWLEDGE')).toBe(true);
+      expect(await validateAnswer(LAYER, 'MYSTERY\u2014BOX\u2014OPENS\u2014WITH\u2014KNOWLEDGE')).toBe(true);
+    });
+
+    it('accepts hyphen U+2010 and non-breaking hyphen U+2011', async () => {
+      expect(await validateAnswer(LAYER, 'MYSTERY\u2010BOX\u2010OPENS\u2010WITH\u2010KNOWLEDGE')).toBe(true);
+      expect(await validateAnswer(LAYER, 'MYSTERY\u2011BOX\u2011OPENS\u2011WITH\u2011KNOWLEDGE')).toBe(true);
+    });
+
+    it('accepts repeated and mixed separators', async () => {
+      expect(await validateAnswer(LAYER, 'MYSTERY--BOX   OPENS__WITH-\u2013KNOWLEDGE')).toBe(true);
+    });
+
+    it('accepts leading and trailing separators and whitespace', async () => {
+      expect(await validateAnswer(LAYER, '  --__MYSTERY-BOX-OPENS-WITH-KNOWLEDGE__--  ')).toBe(true);
+    });
+
+    it('rejects Turkish dotless ı', async () => {
+      expect(await validateAnswer(LAYER, 'mystery-box-opens-wıth-knowledge')).toBe(false);
+    });
+
+    it('rejects long ſ (Latin small letter sharp s / long s)', async () => {
+      expect(await validateAnswer(LAYER, 'myſtery-box-opens-with-knowledge')).toBe(false);
+    });
+
+    it('rejects Kelvin sign (\u212A)', async () => {
+      expect(await validateAnswer(LAYER, 'MYSTERY-BOX-OPENS-WITH-\u212ANOWLEDGE')).toBe(false);
+    });
+
+    it('rejects fullwidth letters', async () => {
+      expect(await validateAnswer(LAYER, 'ＭＹＳＴＥＲＹ-BOX-OPENS-WITH-KNOWLEDGE')).toBe(false);
+    });
+
+    it('rejects extra or missing words', async () => {
+      expect(await validateAnswer(LAYER, 'MYSTERY-BOX-OPENS-WITH')).toBe(false);
+      expect(await validateAnswer(LAYER, 'THE-MYSTERY-BOX-OPENS-WITH-KNOWLEDGE')).toBe(false);
+    });
+
+    it('rejects empty and separators-only input', async () => {
+      expect(await validateAnswer(LAYER, '')).toBe(false);
+      expect(await validateAnswer(LAYER, '---___   --')).toBe(false);
+    });
+
+    it('Layer 2 accepts "verified" and " VeRiFiEd ", rejects "verıfied"', async () => {
+      expect(await validateAnswer('dom-inspect', 'verified')).toBe(true);
+      expect(await validateAnswer('dom-inspect', ' VeRiFiEd ')).toBe(true);
+      expect(await validateAnswer('dom-inspect', 'verıfied')).toBe(false);
+    });
+  });
 });
+
 
 describe('sha256', () => {
   it('produces a 64-character hex string', async () => {
