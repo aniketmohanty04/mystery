@@ -19,7 +19,7 @@ import type { LayerId, LayerStatus } from './core/types.js';
 function statusLabel(status: LayerStatus): string {
   switch (status) {
     case 'active':   return 'ACTIVE';
-    case 'solved':   return 'COMPLETE';
+    case 'solved':   return 'VERIFIED';
     case 'unlocked': return 'UNLOCKED';
     case 'locked':   return 'LOCKED';
   }
@@ -31,13 +31,14 @@ function renderProgress(): void {
 
   nav.innerHTML = '';
 
+  let solvedCount = 0;
   for (const { id, status } of stateMachine.progression) {
+    if (status === 'solved') solvedCount++;
     const meta = LAYER_META[id];
     const item = document.createElement('li');
     item.className = 'progress-item';
     item.dataset.status = status;
     item.innerHTML = `
-
       <span class="sr-only">${meta.displayName}: ${statusLabel(status)}</span>
       <span class="progress-item__dot" aria-hidden="true"></span>
       <span class="progress-item__body" aria-hidden="true">
@@ -50,6 +51,20 @@ function renderProgress(): void {
     nav.appendChild(item);
   }
 
+  // Update header clearance and telemetry if elements exist
+  const clearanceEl = document.getElementById('clearance-level-indicator');
+  if (clearanceEl) {
+    clearanceEl.textContent = `LEVEL ${Math.min(5, solvedCount + 1)}/5`;
+  }
+  const footerSessionEl = document.getElementById('footer-session-state');
+  if (footerSessionEl) {
+    const curId = stateMachine.currentLayer;
+    if (curId && LAYER_META[curId]) {
+      footerSessionEl.textContent = `STAGE ${LAYER_META[curId].index}: ${LAYER_META[curId].displayName.toUpperCase()}`;
+    } else if (solvedCount === 5) {
+      footerSessionEl.textContent = 'ALL STAGES VERIFIED // MASTER VAULT UNLOCKED';
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------

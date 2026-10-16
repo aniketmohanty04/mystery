@@ -1,98 +1,116 @@
 /* ==========================================================================
-   Design Tokens — Mystery Box
-   All visual constants live here. Reference via var(--token-name) everywhere.
+   Design Tokens — Mystery Box (Cybersecurity Forensics Workstation)
+   Classified Intelligence & Security Operations Center (SOC) Aesthetic
    ========================================================================== */
 
 :root {
   /* ---------------------------------------------------------------------- */
-  /* Color palette                                                           */
+  /* Color palette — Deep Graphite, Forensic Amber, Restrained Emerald       */
   /* ---------------------------------------------------------------------- */
 
-  /* Backgrounds */
-  --col-bg:         #000000;   /* Pitch black — terminal canvas             */
-  --col-surface:    #040d06;   /* Deep terminal vault surface               */
-  --col-surface-2:  #08170b;   /* Lifted surface for blocks & artifacts     */
+  /* Backgrounds: Deep graphite & near-black SOC console layers */
+  --col-bg:              #0a0c10;   /* Deep graphite base canvas             */
+  --col-surface:         #11141b;   /* Primary terminal/card surface         */
+  --col-surface-2:       #171b23;   /* Secondary panel / interactive card    */
+  --col-surface-3:       #1e232e;   /* Elevated hover & active module        */
+  --col-mono-bg:         #07080b;   /* Low-level telemetry / raw log canvas  */
 
-  /* Borders & separators */
-  --col-border:     #123519;   /* Subtle terminal green border              */
-  --col-border-2:   #1b4f26;   /* Slightly more visible terminal border     */
+  /* Borders & technical separators */
+  --col-border:          #232936;   /* Hairline technical boundary           */
+  --col-border-2:        #2e3648;   /* Elevated / active panel border        */
+  --col-border-subtle:   #181d26;   /* Subdued hairline grid separator       */
 
-  /* Text */
-  --col-text-1:     #f0fdf4;   /* Crisp white-mint — primary content        */
-  --col-text-2:     #6cbd80;   /* Phosphor green — secondary / narrative    */
-  --col-text-3:     #34633d;   /* Muted terminal green — labels & metadata  */
+  /* Text: High legibility off-white & forensic slate */
+  --col-text-1:          #f1f5f9;   /* Primary off-white typography          */
+  --col-text-2:          #94a3b8;   /* Secondary cool slate for narratives   */
+  --col-text-3:          #596579;   /* Technical metadata, labels & hashes   */
 
-  /* Signal accent — phosphor neon matrix green */
-  --col-accent:     #00ff66;   /* Primary accent — active states & glow     */
-  --col-accent-dim: #0c4d21;   /* Dim accent — unlocked borders & subtle bg */
-  --col-accent-text:#00ff66;   /* Bright neon green text                    */
+  /* Primary Accent — Forensic Amber (Evidence, Telemetry, Investigation) */
+  --col-accent:          #f59e0b;   /* Tactical forensic amber               */
+  --col-accent-hover:    #d97706;   /* Deep amber hover state                */
+  --col-accent-dim:      #78350f;   /* Subdued amber outline / shadow        */
+  --col-accent-subtle:   rgba(245, 158, 11, 0.12); /* Ambient amber glow   */
+  --col-accent-text:     #f59e0b;   /* Amber text highlight                  */
 
-  /* Semantic states */
-  --col-success:    #00ff66;   /* Neon matrix green — correct / solved      */
-  --col-error:      #ef4444;   /* Clear red — error states                  */
-  --col-info:       #6cbd80;   /* Neutral terminal info messages            */
+  /* Verified State — Restrained Emerald (Authenticated, Passed, Sealed) */
+  --col-success:         #10b981;   /* Restrained terminal green             */
+  --col-success-hover:   #059669;   /* Deep emerald hover                    */
+  --col-success-dim:     rgba(16, 185, 129, 0.12); /* Subtle green backdrop*/
+  --col-success-text:    #10b981;   /* Emerald text indicator                */
 
-  /* Monospace / code surfaces */
-  --col-mono-bg:    #020603;   /* Pure dark terminal background             */
+  /* Alert / Error / Timeout — Muted Crimson */
+  --col-error:           #ef4444;   /* Crimson alert for intrusions & errors */
+  --col-error-dim:       rgba(239, 68, 68, 0.12);  /* Alert backdrop       */
+
+  /* System Info / Telemetry */
+  --col-info:            #38bdf8;   /* Cyan telemetry metadata               */
+  --col-info-dim:        rgba(56, 189, 248, 0.12);
 
   /* ---------------------------------------------------------------------- */
   /* Typography                                                              */
   /* ---------------------------------------------------------------------- */
 
-  --font-editorial: 'JetBrains Mono', 'Fira Code', Consolas, 'Courier New', monospace;
-  --font-ui:        system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
-  --font-mono:      'JetBrains Mono', 'Fira Code', Consolas, 'Courier New', monospace;
+  --font-editorial:      'JetBrains Mono', 'Fira Code', 'Roboto Mono', Consolas, monospace;
+  --font-ui:             'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono:           'JetBrains Mono', 'Fira Code', 'Roboto Mono', ui-monospace, Menlo, Consolas, monospace;
 
-  /* Type scale (1.250 minor third) */
-  --text-2xs:  0.6875rem;  /* 11px */
-  --text-xs:   0.75rem;    /* 12px */
-  --text-sm:   0.875rem;   /* 14px */
-  --text-base: 1rem;       /* 16px */
-  --text-lg:   1.125rem;   /* 18px */
-  --text-xl:   1.375rem;   /* 22px */
-  --text-2xl:  1.75rem;    /* 28px */
-  --text-3xl:  2.25rem;    /* 36px */
+  /* Type scale */
+  --text-2xs:            0.6875rem;  /* 11px */
+  --text-xs:             0.75rem;    /* 12px */
+  --text-sm:             0.875rem;   /* 14px */
+  --text-base:           1rem;       /* 16px */
+  --text-lg:             1.125rem;   /* 18px */
+  --text-xl:             1.375rem;   /* 22px */
+  --text-2xl:            1.75rem;    /* 28px */
+  --text-3xl:            2.25rem;    /* 36px */
 
   /* ---------------------------------------------------------------------- */
   /* Spacing                                                                 */
   /* ---------------------------------------------------------------------- */
 
-  --space-1:  0.25rem;
-  --space-2:  0.5rem;
-  --space-3:  0.75rem;
-  --space-4:  1rem;
-  --space-5:  1.25rem;
-  --space-6:  1.5rem;
-  --space-8:  2rem;
-  --space-10: 2.5rem;
-  --space-12: 3rem;
-  --space-16: 4rem;
+  --space-1:             0.25rem;
+  --space-2:             0.5rem;
+  --space-3:             0.75rem;
+  --space-4:             1rem;
+  --space-5:             1.25rem;
+  --space-6:             1.5rem;
+  --space-8:             2rem;
+  --space-10:            2.5rem;
+  --space-12:            3rem;
+  --space-16:            4rem;
 
   /* ---------------------------------------------------------------------- */
   /* Layout                                                                  */
   /* ---------------------------------------------------------------------- */
 
-  --content-max:    720px;
-  --sidebar-width:  216px;
-  --header-height:  56px;
+  --content-max:         820px;
+  --sidebar-width:       260px;
+  --header-height:       64px;
+  --footer-height:       36px;
 
   /* ---------------------------------------------------------------------- */
-  /* Motion                                                                  */
+  /* Motion & Transitions                                                    */
   /* ---------------------------------------------------------------------- */
 
-  --ease-out:      cubic-bezier(0.16, 1, 0.3, 1);
-  --duration-fast: 120ms;
-  --duration-base: 220ms;
+  --ease-out:            cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast:       140ms;
+  --duration-base:       240ms;
 
   /* ---------------------------------------------------------------------- */
   /* Geometry                                                                */
   /* ---------------------------------------------------------------------- */
 
-  --radius-sm:  2px;
-  --radius-md:  3px;
+  --radius-sm:           3px;
+  --radius-md:           4px;
+  --radius-lg:           6px;
+
+  /* Technical shadows */
+  --shadow-panel:        0 4px 20px rgba(0, 0, 0, 0.6);
+  --shadow-active:       0 0 16px rgba(245, 158, 11, 0.15);
+  --shadow-verified:     0 0 16px rgba(16, 185, 129, 0.15);
 }
 
-/* Honour reduced-motion preference globally. */
+/* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   :root {
     --duration-fast: 0ms;

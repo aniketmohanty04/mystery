@@ -16,10 +16,13 @@ html {
   font-size: 16px;
   -webkit-text-size-adjust: 100%;
   scroll-behavior: smooth;
+  background-color: var(--col-bg);
 }
 
 body {
   background-color: var(--col-bg);
+  background-image: radial-gradient(circle at 50% 50%, rgba(35, 41, 54, 0.5) 1px, transparent 1px);
+  background-size: 28px 28px;
   color: var(--col-text-1);
   font-family: var(--font-ui);
   font-size: var(--text-base);
@@ -34,6 +37,7 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.25;
   font-weight: 600;
   color: var(--col-text-1);
+  letter-spacing: -0.01em;
 }
 
 /* Paragraphs */
@@ -96,7 +100,26 @@ hr {
 /* Text selection */
 ::selection {
   background-color: var(--col-accent-dim);
-  color: var(--col-text-1);
+  color: #ffffff;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--col-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--col-border-2);
+  border-radius: var(--radius-sm);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--col-text-3);
 }
 
 /* ==========================================================================
@@ -137,4 +160,3 @@ hr {
     scroll-behavior: auto !important;
   }
 }
-

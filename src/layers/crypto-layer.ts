@@ -86,7 +86,10 @@ export class CryptoLayer implements PuzzleLayer {
         </p>
 
         <div class="artifact" role="region" aria-label="Intercepted message">
-          <p class="artifact__label">INTERCEPTED MESSAGE</p>
+          <p class="artifact__label">
+            <span>SIGINT INTERCEPT &bull; FREQ: 142.85 MHz</span>
+            <span>CIPHER IDENT: ROT-13</span>
+          </p>
           <div class="artifact__content">
             <code class="ciphertext" aria-label="Encrypted ciphertext: ${CIPHER_TEXT}">${CIPHER_TEXT}</code>
             <button
@@ -285,6 +288,17 @@ export class CryptoLayer implements PuzzleLayer {
     const submitBtn = this.root.querySelector<HTMLButtonElement>('#crypto-submit');
     if (input) input.disabled = true;
     if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Solved'; }
+
+    const artifact = this.root.querySelector('.artifact');
+    if (artifact && !this.root.querySelector('.decoded-banner')) {
+      const banner = document.createElement('div');
+      banner.className = 'decoded-banner';
+      banner.innerHTML = `
+        <span style="font-weight: 700; color: var(--col-success);">&#x2713; DECODED PLAINTEXT:</span>
+        <code style="color: var(--col-text-1); font-weight: 700; letter-spacing: 0.08em;">MYSTERY-BOX-OPENS-WITH-KNOWLEDGE</code>
+      `;
+      artifact.appendChild(banner);
+    }
 
     this.showContinueButton();
   }

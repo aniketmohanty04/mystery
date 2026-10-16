@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Mystery Box — A multi-layered cryptographic puzzle experience." />
-    <title>Mystery Box</title>
+    <meta name="description" content="Mystery Box — Classified Digital Forensics Workstation & Cryptographic Investigation." />
+    <title>Mystery Box — Forensic Investigation Console</title>
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   </head>
@@ -13,22 +13,48 @@
     <div id="app">
 
       <!-- ================================================================
+           Classification Bar
+           ================================================================ -->
+      <div class="classification-bar" role="region" aria-label="Security Classification Banner">
+        <span class="classification-badge">RESTRICTED // INCIDENT-RESPONSE</span>
+        <span class="classification-case">INCIDENT INVESTIGATION CASE 409-B</span>
+        <span class="classification-telemetry">PROTOCOL: SEC-ANALYSIS-v2.4</span>
+      </div>
+
+      <!-- ================================================================
            Header
            ================================================================ -->
       <header class="app-header" role="banner">
         <div class="app-header__inner">
           <div class="app-header__identity">
-            <h1 class="app-title">Mystery Box</h1>
-            <p class="app-subtitle">EVIDENCE PROCESSING TERMINAL</p>
+            <div class="app-header__title-row">
+              <h1 class="app-title">Mystery Box</h1>
+              <span class="app-tag">FORENSIC WORKSTATION</span>
+            </div>
+            <p class="app-subtitle">OP-SHADOW-CARRIER &bull; SEC-INCIDENT 409-B</p>
           </div>
-          <button
-            class="btn btn--ghost btn--sm"
-            id="reset-btn"
-            type="button"
-            aria-label="Reset all puzzle progress"
-          >
-            Reset
-          </button>
+
+          <div class="app-header__telemetry" aria-label="Workstation Session Telemetry">
+            <div class="header-stat">
+              <span class="header-stat__label">SESSION:</span>
+              <span class="header-stat__val" id="session-telemetry-status">ACTIVE FORENSIC SESSION</span>
+            </div>
+            <div class="header-stat">
+              <span class="header-stat__label">CLEARANCE:</span>
+              <span class="header-stat__val header-stat__val--accent" id="clearance-level-indicator">LEVEL 1-5</span>
+            </div>
+          </div>
+
+          <div class="app-header__actions">
+            <button
+              class="btn btn--ghost btn--sm"
+              id="reset-btn"
+              type="button"
+              aria-label="Reset all puzzle progress"
+            >
+              Reset
+            </button>
+          </div>
         </div>
       </header>
 
@@ -47,7 +73,10 @@
 
         <!-- Progress indicator — always visible, read-only -->
         <aside class="progress-sidebar" aria-label="Puzzle stage progress">
-          <p class="progress-sidebar__heading">STAGES</p>
+          <div class="progress-sidebar__header">
+            <p class="progress-sidebar__heading">STAGES</p>
+            <span class="progress-sidebar__subheading">AUTHORITATIVE PIPELINE</span>
+          </div>
           <nav aria-label="Puzzle stages">
             <!-- Rendered by main.ts -->
             <ol class="progress-nav" id="progress-nav"></ol>
@@ -55,6 +84,32 @@
         </aside>
 
       </div>
+
+      <!-- ================================================================
+           Footer: status strip
+           ================================================================ -->
+      <footer class="app-footer" role="contentinfo" aria-label="Forensic workstation telemetry strip">
+        <div class="app-footer__inner">
+          <div class="footer-stat">
+            <span class="status-indicator status-indicator--live" aria-hidden="true"></span>
+            <span class="footer-stat__label">SYSTEM STATUS:</span>
+            <span class="footer-stat__val" id="footer-sys-status">OPERATIONAL // AUDIT ACTIVE</span>
+          </div>
+          <div class="footer-stat">
+            <span class="footer-stat__label">CURRENT OPERATION:</span>
+            <span class="footer-stat__val">OP-SHADOW-CARRIER</span>
+          </div>
+          <div class="footer-stat">
+            <span class="footer-stat__label">SESSION STATE:</span>
+            <span class="footer-stat__val" id="footer-session-state">LOCAL FORENSIC CONSOLE</span>
+          </div>
+          <div class="footer-stat">
+            <span class="footer-stat__label">SECURITY ENGINE:</span>
+            <span class="footer-stat__val">AUTHORITATIVE STATE MACHINE</span>
+          </div>
+        </div>
+      </footer>
+
     </div>
 
     <script type="module" src="/src/main.ts"></script>
