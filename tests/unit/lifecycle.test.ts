@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { init, renderLayer, renderProgress } from '../../src/main.js';
+import { init } from '../../src/main.js';
 import { stateMachine } from '../../src/core/state-machine.js';
 
 describe('Success-Feedback Lifecycle & main.ts orchestration', () => {

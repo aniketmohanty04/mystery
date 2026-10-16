@@ -192,12 +192,16 @@ describe('StateMachine', () => {
       resolveValidation = resolve;
     });
 
-    const memoryStore: StateStore = {
-      data: null as unknown,
-      load() { return this.data; },
-      save(d) { this.data = d; },
-      clear() { this.data = null; },
-    };
+    function createMemoryStore(): StateStore {
+      let memoryData: unknown = null;
+      return {
+        load: () => memoryData,
+        save: (d: unknown) => { memoryData = d; },
+        clear: () => { memoryData = null; },
+      };
+    }
+
+    const memoryStore = createMemoryStore();
 
     const sm = new StateMachineImpl({
       validateAnswer: delayedValidator,
@@ -216,20 +220,20 @@ describe('StateMachine', () => {
     expect(memoryStore.load()).toBeNull();
   });
 
-
   // 17. Injected implementedLayers
   it('supports injecting implementedLayers for future phase progression', async () => {
+    let memoryData: unknown = null;
     const memoryStore: StateStore = {
-      data: null as unknown,
-      load() { return this.data; },
-      save(d) { this.data = d; },
-      clear() { this.data = null; },
+      load: () => memoryData,
+      save: (d: unknown) => { memoryData = d; },
+      clear: () => { memoryData = null; },
     };
 
     const sm = new StateMachineImpl({
       store: memoryStore,
       implementedLayers: new Set(['crypto', 'dom-inspect', 'cross-tab']),
     });
+
 
     await sm.solve('crypto', CORRECT_ANSWER);
     await sm.solve('dom-inspect', 'verified');
