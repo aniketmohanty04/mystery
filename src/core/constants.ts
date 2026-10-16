@@ -34,3 +34,7 @@ export const LAYER_META: Record<LayerId, { displayName: string; index: string }>
   'temporal':     { displayName: 'Temporal Logic', index: '04' },
   'final-reveal': { displayName: 'Final Reveal',   index: '05' },
 };
+
+/** Shown when answer validation cannot run (Web Crypto needs HTTPS or localhost). */
+export const VALIDATION_UNAVAILABLE_MESSAGE =
+  'Answer validation is unavailable in this browser context. Open the puzzle over HTTPS or on localhost, then try again.';

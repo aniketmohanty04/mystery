@@ -24,7 +24,7 @@ import type { LayerId } from './types.js';
 
 /**
  * SHA-256 hex digests of each layer's correct answer.
- * Answers are normalized (trimmed, uppercased) before hashing.
+ * Answers are canonicalized by normalizeAnswer() before hashing.
  * Only layers with implemented puzzles have entries here.
  *
  * Layer 1 answer: MYSTERY-BOX-OPENS-WITH-KNOWLEDGE
@@ -38,10 +38,17 @@ const LAYER_HASHES: Partial<Record<LayerId, string>> = {
 /**
  * Compute the SHA-256 hex digest of a UTF-8 string.
  * Uses the browser/Node native Web Crypto API — no dependencies.
+ *
+ * crypto.subtle only exists in secure contexts (HTTPS or localhost). Throws a
+ * descriptive error otherwise; StateMachine.solve() turns that into 'error'.
  */
 export async function sha256(text: string): Promise<string> {
+  const subtle = globalThis.crypto?.subtle;
+  if (!subtle) {
+    throw new Error('Web Crypto (crypto.subtle) is unavailable. Serve the app over HTTPS or localhost.');
+  }
   const encoded = new TextEncoder().encode(text);
-  const buffer = await crypto.subtle.digest('SHA-256', encoded);
+  const buffer = await subtle.digest('SHA-256', encoded);
   return Array.from(new Uint8Array(buffer))
     .map(b => b.toString(16).padStart(2, '0'))
     .join('');

@@ -199,5 +199,57 @@ describe('CryptoLayer DOM & Interaction', () => {
     expect(status.textContent).not.toBe('Transmission still encrypted. Check your decoding.');
     solveSpy.mockRestore();
   });
-});
 
+  it('error result shows the validation-unavailable message and re-enables Submit', async () => {
+    const input = container.querySelector('#crypto-answer') as HTMLInputElement;
+    const status = container.querySelector('#crypto-status') as HTMLElement;
+    const submit = container.querySelector('#crypto-submit') as HTMLButtonElement;
+    const solveSpy = vi.spyOn(stateMachine, 'solve').mockResolvedValueOnce('error');
+
+    input.value = 'MYSTERY-BOX-OPENS-WITH-KNOWLEDGE';
+    (container.querySelector('.answer-form') as HTMLFormElement)
+      .dispatchEvent(new Event('submit', { cancelable: true }));
+
+    await vi.waitFor(() => {
+      expect(status.textContent).toContain('HTTPS or on localhost');
+    });
+    expect(status.textContent).not.toContain('still encrypted');
+    expect(submit.disabled).toBe(false);
+    expect(submit.textContent).toBe('Submit');
+    expect(input.disabled).toBe(false);
+    solveSpy.mockRestore();
+  });
+
+  it('with Web Crypto missing, a real submit recovers instead of hanging on "Checking…"', async () => {
+    const input = container.querySelector('#crypto-answer') as HTMLInputElement;
+    const status = container.querySelector('#crypto-status') as HTMLElement;
+    const submit = container.querySelector('#crypto-submit') as HTMLButtonElement;
+
+    vi.stubGlobal('crypto', {}); // simulates a non-secure context (no crypto.subtle)
+    try {
+      input.value = 'MYSTERY-BOX-OPENS-WITH-KNOWLEDGE';
+      (container.querySelector('.answer-form') as HTMLFormElement)
+        .dispatchEvent(new Event('submit', { cancelable: true }));
+
+      await vi.waitFor(() => {
+        expect(status.textContent).toContain('HTTPS or on localhost');
+      });
+      expect(submit.disabled).toBe(false);
+      expect(stateMachine.currentLayer).toBe('crypto');
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('moves focus to the Continue button once solved', async () => {
+    const input = container.querySelector('#crypto-answer') as HTMLInputElement;
+    input.value = 'MYSTERY-BOX-OPENS-WITH-KNOWLEDGE';
+    (container.querySelector('.answer-form') as HTMLFormElement)
+      .dispatchEvent(new Event('submit', { cancelable: true }));
+
+    await vi.waitFor(() => {
+      expect(container.querySelector('#crypto-continue')).not.toBeNull();
+    });
+    expect(document.activeElement?.id).toBe('crypto-continue');
+  });
+});

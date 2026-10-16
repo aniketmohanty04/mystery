@@ -26,6 +26,9 @@ describe('DomLayer — Live DOM Mutation Puzzle', () => {
     layer.destroy();
   });
 
+  /** Rendered status of the layer card (the layer keeps no duplicate status field). */
+  const cardStatus = () => container.querySelector('.layer-card')?.getAttribute('data-status');
+
   it('renders the initial DOM structure with data-seal="intact"', () => {
     const sealEl = container.querySelector('#evidence-seal') as HTMLElement;
     expect(sealEl).not.toBeNull();
@@ -56,7 +59,7 @@ describe('DomLayer — Live DOM Mutation Puzzle', () => {
     });
 
     // Check layer and state machine progression
-    expect(layer.status).toBe('solved');
+    expect(cardStatus()).toBe('solved');
     expect(stateMachine.progression.find(e => e.id === 'dom-inspect')?.status).toBe('solved');
     // Layer 3 (cross-tab) is unlocked
     expect(stateMachine.progression.find(e => e.id === 'cross-tab')?.status).toBe('unlocked');
@@ -69,7 +72,7 @@ describe('DomLayer — Live DOM Mutation Puzzle', () => {
     sealEl.setAttribute('data-seal', '  VERIFIED  ');
 
     await vi.waitFor(() => {
-      expect(layer.status).toBe('solved');
+      expect(cardStatus()).toBe('solved');
     });
     expect(stateMachine.progression.find(e => e.id === 'dom-inspect')?.status).toBe('solved');
   });
@@ -86,7 +89,7 @@ describe('DomLayer — Live DOM Mutation Puzzle', () => {
       expect(msg?.textContent).toContain('Tamper-evident seal rejected');
     });
 
-    expect(layer.status).toBe('active');
+    expect(cardStatus()).toBe('active');
     expect(stateMachine.progression.find(e => e.id === 'dom-inspect')?.status).toBe('active');
   });
 
@@ -100,7 +103,7 @@ describe('DomLayer — Live DOM Mutation Puzzle', () => {
     // Wait microtask tick
     await new Promise(r => setTimeout(r, 20));
 
-    expect(layer.status).toBe('active');
+    expect(cardStatus()).toBe('active');
     expect(stateMachine.progression.find(e => e.id === 'dom-inspect')?.status).toBe('active');
   });
 
@@ -114,7 +117,7 @@ describe('DomLayer — Live DOM Mutation Puzzle', () => {
 
     await new Promise(r => setTimeout(r, 20));
 
-    expect(layer.status).toBe('active');
+    expect(cardStatus()).toBe('active');
     expect(stateMachine.progression.find(e => e.id === 'dom-inspect')?.status).toBe('active');
   });
 
@@ -128,7 +131,7 @@ describe('DomLayer — Live DOM Mutation Puzzle', () => {
 
     await new Promise(r => setTimeout(r, 20));
 
-    expect(layer.status).toBe('active');
+    expect(cardStatus()).toBe('active');
     expect(stateMachine.progression.find(e => e.id === 'dom-inspect')?.status).toBe('active');
   });
 
@@ -144,7 +147,7 @@ describe('DomLayer — Live DOM Mutation Puzzle', () => {
     sealEl.setAttribute('data-seal', 'verified');
 
     await vi.waitFor(() => {
-      expect(layer.status).toBe('solved');
+      expect(cardStatus()).toBe('solved');
     });
 
     expect(transitionEvents).toHaveLength(1);
@@ -213,7 +216,7 @@ describe('DomLayer — Live DOM Mutation Puzzle', () => {
     });
 
     // Layer must not be solved
-    expect(layer.status).not.toBe('solved');
+    expect(cardStatus()).toBe('active');
     expect(container.querySelector('#dom-continue')).toBeNull();
   });
 
@@ -227,7 +230,7 @@ describe('DomLayer — Live DOM Mutation Puzzle', () => {
     sealEl.setAttribute('data-seal', 'verified');
 
     await vi.waitFor(() => {
-      expect(layer.status).toBe('solved');
+      expect(cardStatus()).toBe('solved');
     });
 
     const continueBtn = container.querySelector('#dom-continue') as HTMLButtonElement;
@@ -257,7 +260,39 @@ describe('DomLayer — Live DOM Mutation Puzzle', () => {
     }).not.toThrow();
 
     await new Promise(r => setTimeout(r, 20));
-    expect(layer.status).toBe('active');
+    expect(cardStatus()).toBe('active');
+  });
+
+  it('shows an unavailable message when validation errors, and a retry still solves', async () => {
+    const sealEl = container.querySelector('#evidence-seal') as HTMLElement;
+    const badge = container.querySelector('#seal-status-badge');
+    const msg = container.querySelector('#seal-feedback-message');
+
+    const spy = vi.spyOn(stateMachine, 'solve').mockResolvedValueOnce('error');
+    sealEl.setAttribute('data-seal', 'verified');
+
+    await vi.waitFor(() => {
+      expect(badge?.textContent).toBe('SEAL: UNAVAILABLE');
+    });
+    expect(msg?.textContent).toContain('HTTPS or on localhost');
+    expect(cardStatus()).toBe('active');
+    expect(container.querySelector('#dom-continue')).toBeNull();
+    spy.mockRestore();
+
+    // Observer is still live: touching the attribute again retries and succeeds.
+    sealEl.setAttribute('data-seal', 'verified');
+    await vi.waitFor(() => {
+      expect(cardStatus()).toBe('solved');
+    });
+    expect(badge?.textContent).toBe('SEAL: VERIFIED');
+  });
+
+  it('moves focus to the Continue button once solved', async () => {
+    const sealEl = container.querySelector('#evidence-seal') as HTMLElement;
+    sealEl.setAttribute('data-seal', 'verified');
+    await vi.waitFor(() => {
+      expect(container.querySelector('#dom-continue')).not.toBeNull();
+    });
+    expect(document.activeElement?.id).toBe('dom-continue');
   });
 });
-

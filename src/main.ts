@@ -75,6 +75,14 @@ function bindReset(): void {
 // Boot
 // ---------------------------------------------------------------------------
 
+/** Move keyboard focus to the current layer's heading (after a transition or reset). */
+function focusHeading(container: HTMLElement): void {
+  const heading = container.querySelector<HTMLElement>('.layer-card__title');
+  if (!heading) return;
+  heading.setAttribute('tabindex', '-1');
+  heading.focus();
+}
+
 export function renderLayer(shouldFocusHeading = false): void {
   const container = document.getElementById('layer-container');
   if (!container) return;
@@ -91,13 +99,7 @@ export function renderLayer(shouldFocusHeading = false): void {
     layer.mount(container);
     layer.activate();
     mountedLayer = layer;
-    if (shouldFocusHeading) {
-      const heading = container.querySelector<HTMLElement>('.layer-card__title');
-      if (heading) {
-        heading.setAttribute('tabindex', '-1');
-        heading.focus();
-      }
-    }
+    if (shouldFocusHeading) focusHeading(container);
     return;
   }
 
@@ -106,13 +108,7 @@ export function renderLayer(shouldFocusHeading = false): void {
     layer.mount(container);
     layer.activate();
     mountedLayer = layer;
-    if (shouldFocusHeading) {
-      const heading = container.querySelector<HTMLElement>('.layer-card__title');
-      if (heading) {
-        heading.setAttribute('tabindex', '-1');
-        heading.focus();
-      }
-    }
+    if (shouldFocusHeading) focusHeading(container);
     return;
   }
 
@@ -120,13 +116,7 @@ export function renderLayer(shouldFocusHeading = false): void {
   const unlocked = stateMachine.progression.find(e => e.status === 'unlocked');
   if (unlocked) {
     renderUnlockedPlaceholder(container, unlocked.id);
-    if (shouldFocusHeading) {
-      const heading = container.querySelector<HTMLElement>('.layer-card__title');
-      if (heading) {
-        heading.setAttribute('tabindex', '-1');
-        heading.focus();
-      }
-    }
+    if (shouldFocusHeading) focusHeading(container);
     return;
   }
 

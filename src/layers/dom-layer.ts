@@ -1,5 +1,6 @@
-import type { PuzzleLayer, LayerId, LayerStatus, SolveResult } from '../core/types.js';
+import type { PuzzleLayer, LayerId, SolveResult } from '../core/types.js';
 import { stateMachine } from '../core/state-machine.js';
+import { VALIDATION_UNAVAILABLE_MESSAGE } from '../core/constants.js';
 import { normalizeAnswer } from '../core/answer-validator.js';
 
 /**
@@ -29,7 +30,6 @@ const HINTS: readonly string[] = [
 export class DomLayer implements PuzzleLayer {
   readonly id: LayerId = 'dom-inspect';
   readonly displayName = 'Digital Evidence Seal';
-  status: LayerStatus = 'active';
 
   private container: HTMLElement | null = null;
   private root: HTMLElement | null = null;
@@ -50,7 +50,6 @@ export class DomLayer implements PuzzleLayer {
   }
 
   activate(): void {
-    this.status = 'active';
     if (!this.root) return;
     this.root.dataset.status = 'active';
 
@@ -150,7 +149,6 @@ export class DomLayer implements PuzzleLayer {
       this.isSolved = true;
       this.stopObserving();
 
-      this.status = 'solved';
       if (this.root) {
         this.root.dataset.status = 'solved';
       }
@@ -170,14 +168,23 @@ export class DomLayer implements PuzzleLayer {
       }
       this.showContinueButton();
     } else {
-      // Roll back UI to neutral failure state and keep observing so player can retry
+      // Roll back UI to a failure state and keep observing so the player can retry.
+      let badgeText = 'SEAL: REJECTED';
+      let message = 'Seal override rejected by security policy. Modify the attribute to retry.';
+      if (result === 'error') {
+        badgeText = 'SEAL: UNAVAILABLE';
+        message = VALIDATION_UNAVAILABLE_MESSAGE;
+      } else if (result === 'busy' || result === 'cancelled') {
+        badgeText = 'SEAL: INTERRUPTED';
+        message = 'Seal check was interrupted. Modify the attribute to retry.';
+      }
       if (badge) {
         badge.className = 'evidence-seal__badge badge badge--error';
-        badge.textContent = 'SEAL: REJECTED';
+        badge.textContent = badgeText;
       }
       if (msg) {
         msg.className = 'evidence-seal__message evidence-seal__message--error';
-        msg.textContent = 'Seal override rejected by security policy. Modify the attribute to retry.';
+        msg.textContent = message;
       }
     }
   }
@@ -197,6 +204,7 @@ export class DomLayer implements PuzzleLayer {
       const content = this.root.querySelector('.evidence-seal__content');
       content?.appendChild(continueBtn);
     }
+    continueBtn.focus();
   }
 
   private handleIncorrectMutation(value: string): void {

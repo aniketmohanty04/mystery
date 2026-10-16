@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { validateAnswer, sha256 } from '../../src/core/answer-validator.js';
 
 const LAYER = 'crypto' as const;
@@ -135,5 +135,22 @@ describe('sha256', () => {
     const a = await sha256(CORRECT);
     const b = await sha256('DIFFERENT');
     expect(a).not.toBe(b);
+  });
+});
+
+
+describe('sha256 without Web Crypto (non-secure context)', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('throws a descriptive error when crypto.subtle is unavailable', async () => {
+    vi.stubGlobal('crypto', {});
+    await expect(sha256('test')).rejects.toThrow(/HTTPS or localhost/);
+  });
+
+  it('validateAnswer surfaces the failure instead of silently returning false', async () => {
+    vi.stubGlobal('crypto', undefined);
+    await expect(validateAnswer(LAYER, CORRECT)).rejects.toThrow(/crypto\.subtle/);
   });
 });

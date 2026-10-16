@@ -13,10 +13,11 @@ interface EventMap {
 type EventHandler<T> = (payload: T) => void;
 
 /**
- * Lightweight typed pub/sub event bus for internal communication between
- * the state machine and UI components. Not exposed outside the core module.
+ * Lightweight typed pub/sub event bus. Each StateMachineImpl owns its own
+ * instance, so separate machines (for example in tests) never hear each
+ * other's events.
  */
-class TypedEventBus {
+export class TypedEventBus {
   private readonly listeners = new Map<string, Set<EventHandler<unknown>>>();
 
   on<K extends keyof EventMap>(
@@ -39,4 +40,3 @@ class TypedEventBus {
   }
 }
 
-export const eventBus = new TypedEventBus();

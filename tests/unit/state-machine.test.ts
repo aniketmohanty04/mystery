@@ -242,5 +242,61 @@ describe('StateMachine', () => {
     expect(sm.currentLayer).toBe('cross-tab');
     expect(sm.progression.find(e => e.id === 'cross-tab')?.status).toBe('active');
   });
-});
 
+  // 18. Validator failure
+  it("returns 'error' (never rejects) when the validator throws, leaves state untouched and releases the lock", async () => {
+    let memoryData: unknown = null;
+    const memoryStore: StateStore = {
+      load: () => memoryData,
+      save: (d: unknown) => { memoryData = d; },
+      clear: () => { memoryData = null; },
+    };
+    let calls = 0;
+    const sm = new StateMachineImpl({
+      store: memoryStore,
+      validateAnswer: async () => {
+        calls++;
+        if (calls === 1) throw new TypeError('crypto.subtle is undefined');
+        return true;
+      },
+    });
+
+    await expect(sm.solve('crypto', CORRECT_ANSWER)).resolves.toBe('error');
+    expect(sm.currentLayer).toBe('crypto');
+    expect(sm.progression[0].status).toBe('active');
+    expect(memoryData).toBeNull();
+
+    // The in-flight lock was released: a retry is not 'busy' and succeeds.
+    await expect(sm.solve('crypto', CORRECT_ANSWER)).resolves.toBe('accepted');
+    expect(sm.currentLayer).toBe('dom-inspect');
+  });
+
+  // 19. Validator failure racing a reset
+  it("returns 'cancelled' when the validator throws after reset() was called", async () => {
+    let rejectValidation!: (e: Error) => void;
+    const sm = new StateMachineImpl({
+      store: { load: () => null, save: () => {}, clear: () => {} },
+      validateAnswer: () => new Promise<boolean>((_, reject) => { rejectValidation = reject; }),
+    });
+    const pending = sm.solve('crypto', CORRECT_ANSWER);
+    sm.reset();
+    rejectValidation(new Error('boom'));
+    await expect(pending).resolves.toBe('cancelled');
+  });
+
+  // 20. Event isolation
+  it('keeps transition events isolated per state machine instance', async () => {
+    const quietStore = (): StateStore => ({ load: () => null, save: () => {}, clear: () => {} });
+    const a = new StateMachineImpl({ store: quietStore(), validateAnswer: async () => true });
+    const b = new StateMachineImpl({ store: quietStore(), validateAnswer: async () => true });
+    const heardByA: unknown[] = [];
+    const heardByB: unknown[] = [];
+    a.on('transition', p => heardByA.push(p));
+    b.on('transition', p => heardByB.push(p));
+
+    await a.solve('crypto', CORRECT_ANSWER);
+
+    expect(heardByA).toHaveLength(1);
+    expect(heardByB).toHaveLength(0);
+  });
+});

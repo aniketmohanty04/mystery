@@ -1,8 +1,7 @@
 import type { GameState, LayerId, LayerEntry, StateStore, SolveResult } from './types.js';
-import type { TransitionPayload } from './event-bus.js';
+import { TypedEventBus, type TransitionPayload } from './event-bus.js';
 import { validateAnswer as defaultValidateAnswer } from './answer-validator.js';
 import { saveState, loadState, clearState, sessionStore } from './storage.js';
-import { eventBus } from './event-bus.js';
 import { LAYER_ORDER, IMPLEMENTED_LAYERS } from './constants.js';
 
 // ---------------------------------------------------------------------------
@@ -38,6 +37,7 @@ export class StateMachineImpl {
   private state: GameState;
   private isSolving = false;
   private generation = 0;
+  private readonly bus = new TypedEventBus();
   private readonly store: StateStore;
   private readonly validateAnswerFn: (layerId: LayerId, answer: string) => Promise<boolean>;
   private readonly implementedLayers: ReadonlySet<LayerId>;
@@ -75,6 +75,7 @@ export class StateMachineImpl {
    *   - 'incorrect'  if answer is wrong or layer is not active
    *   - 'busy'       if another solve operation is currently in flight
    *   - 'cancelled'  if reset() was called while validation was hashing
+   *   - 'error'      if validation itself failed to run (state is untouched)
    *
    * Safe to call repeatedly and concurrently; will not duplicate transitions.
    */
@@ -89,7 +90,14 @@ export class StateMachineImpl {
     const currentGen = this.generation;
     this.isSolving = true;
     try {
-      const correct = await this.validateAnswerFn(layerId, answer);
+      let correct: boolean;
+      try {
+        correct = await this.validateAnswerFn(layerId, answer);
+      } catch {
+        // Validation could not run (for example crypto.subtle is missing on a
+        // non-secure origin). Report it; never leave callers with a rejection.
+        return this.generation !== currentGen ? 'cancelled' : 'error';
+      }
 
       // Abort if reset() was called while hashing
       if (this.generation !== currentGen) {
@@ -122,7 +130,7 @@ export class StateMachineImpl {
       }
 
       saveState(this.state, this.store);
-      eventBus.emit('transition', { from: layerId, to: this.state.currentLayer });
+      this.bus.emit('transition', { from: layerId, to: this.state.currentLayer });
       return 'accepted';
     } finally {
       if (this.generation === currentGen) {
@@ -138,7 +146,7 @@ export class StateMachineImpl {
     event: 'transition',
     handler: (payload: TransitionPayload) => void,
   ): () => void {
-    return eventBus.on(event, handler);
+    return this.bus.on(event, handler);
   }
 
   // -- Reset ----------------------------------------------------------------

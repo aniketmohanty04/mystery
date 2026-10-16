@@ -37,7 +37,16 @@ export interface GameState {
   progression: LayerEntry[];
 }
 
-export type SolveResult = 'accepted' | 'incorrect' | 'busy' | 'cancelled';
+/**
+ * Outcome of StateMachine.solve():
+ *  - 'accepted'  answer correct, progression advanced
+ *  - 'incorrect' answer wrong, or the layer is not the active one
+ *  - 'busy'      another solve is already in flight
+ *  - 'cancelled' reset() happened while validating; nothing was changed
+ *  - 'error'     validation could not run (e.g. Web Crypto unavailable on a
+ *                non-secure origin); nothing was changed and a retry is safe
+ */
+export type SolveResult = 'accepted' | 'incorrect' | 'busy' | 'cancelled' | 'error';
 
 /**
  * PuzzleLayer is the contract every puzzle layer module must implement.
@@ -47,7 +56,6 @@ export type SolveResult = 'accepted' | 'incorrect' | 'busy' | 'cancelled';
 export interface PuzzleLayer {
   readonly id: LayerId;
   readonly displayName: string;
-  status: LayerStatus;
 
   /** Render the layer UI into the given container. Called once on mount. */
   mount(container: HTMLElement): void;
@@ -62,7 +70,7 @@ export interface PuzzleLayer {
   /**
    * Attempt to submit an answer.
    * Returns 'accepted' if the answer is correct and the layer advances.
-   * Returns 'incorrect', 'busy', or 'cancelled' on failure — never throws.
+   * Returns 'incorrect', 'busy', 'cancelled' or 'error' on failure — never throws.
    */
   submitAnswer(answer: string): Promise<SolveResult>;
 }

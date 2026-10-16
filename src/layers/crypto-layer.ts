@@ -1,5 +1,6 @@
-import type { PuzzleLayer, LayerId, LayerStatus, SolveResult } from '../core/types.js';
+import type { PuzzleLayer, LayerId, SolveResult } from '../core/types.js';
 import { stateMachine } from '../core/state-machine.js';
+import { VALIDATION_UNAVAILABLE_MESSAGE } from '../core/constants.js';
 
 // ---------------------------------------------------------------------------
 // Puzzle constants
@@ -20,11 +21,11 @@ const HINTS: readonly string[] = [
 export class CryptoLayer implements PuzzleLayer {
   readonly id: LayerId = 'crypto';
   readonly displayName = 'Encrypted Transmission';
-  status: LayerStatus = 'active';
 
   private container: HTMLElement | null = null;
   private root: HTMLElement | null = null;
   private hintsRevealed = 0;
+  private isSolved = false;
   private formHandler: ((e: Event) => void) | null = null;
 
   // -- PuzzleLayer interface ------------------------------------------------
@@ -37,7 +38,6 @@ export class CryptoLayer implements PuzzleLayer {
   }
 
   activate(): void {
-    this.status = 'active';
     if (!this.root) return;
     this.root.dataset.status = 'active';
     this.setInputsDisabled(false);
@@ -245,9 +245,13 @@ export class CryptoLayer implements PuzzleLayer {
       this.setStatus(statusEl, 'error', 'Transmission still encrypted. Check your decoding.');
       if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit'; }
       input?.focus();
+    } else if (result === 'error') {
+      this.setStatus(statusEl, 'error', VALIDATION_UNAVAILABLE_MESSAGE);
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit'; }
+      input?.focus();
     } else {
       // 'busy' or 'cancelled': do not show misleading "still encrypted" error.
-      if (submitBtn && this.status !== 'solved') {
+      if (submitBtn && !this.isSolved) {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Submit';
       }
@@ -268,7 +272,7 @@ export class CryptoLayer implements PuzzleLayer {
 
   private markSolved(): void {
     if (!this.root) return;
-    this.status = 'solved';
+    this.isSolved = true;
     this.root.dataset.status = 'solved';
 
     const badge = this.root.querySelector<HTMLElement>('.layer-meta__badge');
@@ -300,6 +304,8 @@ export class CryptoLayer implements PuzzleLayer {
       const form = this.root.querySelector('.answer-form');
       form?.appendChild(continueBtn);
     }
+    // The answer input was disabled while focused, so hand focus to Continue.
+    continueBtn.focus();
   }
 
 

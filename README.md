@@ -23,7 +23,8 @@ Designed with an **editorial forensic workstation / archival evidence terminal**
    - `currentLayer` is strictly typed as `LayerId | null`. Points to `'crypto'` initially, advances to `'dom-inspect'` after Layer 1, and becomes `null` once Layer 2 is solved (since Layer 3 is unlocked but pending Phase 3).
    - Progression is strictly sequential; out-of-order attempts are rejected.
    - Guarded against concurrent submissions and in-flight reset races with generation counters.
-   - Fully injectable dependencies (`store`, `validateAnswer`, `implementedLayers`) for deterministic testing.
+   - Fully injectable dependencies (`store`, `validateAnswer`, `implementedLayers`) for deterministic testing; each instance owns its own event bus.
+   - `solve()` never rejects: it returns `'accepted' | 'incorrect' | 'busy' | 'cancelled' | 'error'`. `'error'` means validation could not run (state untouched, retry is safe).
 3. **Storage Abstraction & Session Persistence (`storage.ts`):**
    - Game progression state is isolated behind the `StateStore` interface (`load()`, `save()`, `clear()`), allowing future phases (such as Phase 3 cross-tab sync) to plug in `BroadcastChannel` or `localStorage` without altering the core state machine.
    - Strict schema versioning (`{ version: 1, progression: [...] }`).
@@ -47,6 +48,7 @@ This is an educational frontend challenge for demonstration and codeathon purpos
 - SHA-256 hashes are embedded in the client JavaScript bundle. Anyone inspecting the minified sources or debugger can find the hash or manipulate local storage.
 - Layer 2 intentionally requires using browser DevTools to inspect and modify an HTML attribute (`data-seal`).
 - In Layer 2, the expected attribute value (`verified`) is evaluated client-side. The DOM comparison and state validator both enforce strict ASCII normalization.
+- Answer checking uses the Web Crypto API, which browsers only expose on HTTPS or `localhost`. On a plain-HTTP origin (for example `http://192.168.x.x`) the game shows a "validation unavailable" message instead of hanging; serve it over HTTPS or `localhost` to play.
 - `sessionStorage` is scoped per-tab; the storage interface introduced in Phase 2 prepares the architecture for cross-tab communication in Phase 3.
 
 ---
@@ -54,8 +56,9 @@ This is an educational frontend challenge for demonstration and codeathon purpos
 ## Setup & Running
 
 ### Prerequisites
-- Node.js: `^22.22.2 || ^24.15.0 || >=26` (tested on Node.js `v24.20.0`)
-- npm: `10+` (tested on npm `11.19.0`)
+- Node.js: `^22.22.2 || ^24.15.0 || >=26` (verified on Node.js `v22.22.2`)
+- npm: `10+` (verified on npm `10.9.7`)
+- A browser context that exposes Web Crypto: serve over **HTTPS or `localhost`** (see Security Disclosure)
 
 ### Installation
 ```bash
@@ -67,12 +70,12 @@ npm install
 | Command | Description |
 |---|---|
 | `npm run dev` | Launch local Vite development server (http://localhost:5173) |
-| `npm test` | Run all 103 unit & lifecycle tests using Vitest |
+| `npm test` | Run all 113 unit & lifecycle tests using Vitest |
 | `npm run typecheck` | Run TypeScript type checks (`tsc --noEmit`) on `src/` |
 | `npm run typecheck:test` | Run TypeScript type checks (`tsc -p tsconfig.test.json --noEmit`) on `src/` and `tests/` |
 | `npm run build` | Run TypeScript checks and bundle for production (`tsc && vite build`) |
 | `npm run preview` | Preview production build locally |
-| `npm run package` | Generate a clean release archive (`mystery-box-phase2.zip`) excluding `node_modules/`, `dist/`, `.git/` |
+| `npm run package` | Build `mystery-box-phase2.zip` from the **committed** files via `git archive` (no `node_modules/`, `dist/` or `.git/`). Refuses to run on a dirty tree or outside a git repo, so nothing is silently left out |
 
 ---
 
