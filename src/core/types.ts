@@ -55,11 +55,9 @@ export interface PuzzleLayer {
   /** Make the layer interactive. Called when status transitions to 'active'. */
   activate(): void;
 
-  /** Freeze the UI. Called when status is 'locked' or 'unlocked'. */
-  lock(): void;
-
   /** Remove DOM nodes, cancel timers, remove event listeners. */
   destroy(): void;
+
 
   /**
    * Attempt to submit an answer.

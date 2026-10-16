@@ -33,19 +33,20 @@ function renderProgress(): void {
     const item = document.createElement('li');
     item.className = 'progress-item';
     item.dataset.status = status;
-    item.setAttribute('aria-label', `${meta.displayName}: ${statusLabel(status)}`);
-
     item.innerHTML = `
+
+      <span class="sr-only">${meta.displayName}: ${statusLabel(status)}</span>
       <span class="progress-item__dot" aria-hidden="true"></span>
-      <span class="progress-item__body">
+      <span class="progress-item__body" aria-hidden="true">
         <span class="progress-item__index">${meta.index}</span>
         <span class="progress-item__name">${meta.displayName.toUpperCase()}</span>
       </span>
-      <span class="progress-item__status">${statusLabel(status)}</span>
+      <span class="progress-item__status" aria-hidden="true">${statusLabel(status)}</span>
     `;
 
     nav.appendChild(item);
   }
+
 }
 
 // ---------------------------------------------------------------------------

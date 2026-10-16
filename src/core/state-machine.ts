@@ -145,16 +145,16 @@ export class StateMachineImpl {
 
   /**
    * Clear all progress and return to the initial state.
-   * Clears storage, aborts any in-flight solve, and emits a reset event.
+   * Clears storage and aborts any in-flight solve.
    */
   reset(): void {
     this.generation++;
     this.isSolving = false;
     this.state = buildInitialState();
     clearState(this.store);
-    eventBus.emit('reset', undefined);
   }
 }
+
 
 // Singleton — one instance for the lifetime of the page.
 export const stateMachine = new StateMachineImpl();

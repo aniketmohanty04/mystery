@@ -7,8 +7,8 @@ export interface TransitionPayload {
 
 interface EventMap {
   transition: TransitionPayload;
-  reset: undefined;
 }
+
 
 type EventHandler<T> = (payload: T) => void;
 

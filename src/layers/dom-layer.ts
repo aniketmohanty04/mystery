@@ -64,15 +64,8 @@ export class DomLayer implements PuzzleLayer {
 
   }
 
-  lock(): void {
-    this.status = 'locked';
-    if (this.root) {
-      this.root.dataset.status = 'locked';
-    }
-    this.stopObserving();
-  }
-
   destroy(): void {
+
     this.stopObserving();
     if (this.root && this.container?.contains(this.root)) {
       this.container.removeChild(this.root);

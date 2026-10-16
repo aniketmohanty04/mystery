@@ -45,14 +45,8 @@ export class CryptoLayer implements PuzzleLayer {
     input?.focus();
   }
 
-  lock(): void {
-    this.status = 'locked';
-    if (!this.root) return;
-    this.root.dataset.status = 'locked';
-    this.setInputsDisabled(true);
-  }
-
   destroy(): void {
+
     if (this.root && this.container?.contains(this.root)) {
       this.container.removeChild(this.root);
     }
