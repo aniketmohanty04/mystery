@@ -1,7 +1,7 @@
-import type { GameState, LayerId, LayerStatus, LayerEntry } from './types.js';
+import type { GameState, LayerId, LayerEntry, StateStore } from './types.js';
 import type { TransitionPayload } from './event-bus.js';
-import { validateAnswer } from './answer-validator.js';
-import { saveState, loadState, clearState } from './storage.js';
+import { validateAnswer as defaultValidateAnswer } from './answer-validator.js';
+import { saveState, loadState, clearState, sessionStore } from './storage.js';
 import { eventBus } from './event-bus.js';
 import { LAYER_ORDER, IMPLEMENTED_LAYERS } from './constants.js';
 
@@ -24,26 +24,31 @@ function nextLayerId(current: LayerId): LayerId | undefined {
   return idx >= 0 ? LAYER_ORDER[idx + 1] : undefined;
 }
 
-/**
- * Determine the correct status for a newly-unlocked layer.
- * 'active'   → layer is in IMPLEMENTED_LAYERS (playable now)
- * 'unlocked' → prerequisite met but implementation is pending
- */
-function statusForNextLayer(id: LayerId): LayerStatus {
-  return IMPLEMENTED_LAYERS.has(id) ? 'active' : 'unlocked';
+// ---------------------------------------------------------------------------
+// State machine options & class
+// ---------------------------------------------------------------------------
+
+export interface StateMachineOptions {
+  store?: StateStore;
+  validateAnswer?: (layerId: LayerId, answer: string) => Promise<boolean>;
+  implementedLayers?: ReadonlySet<LayerId>;
 }
 
-// ---------------------------------------------------------------------------
-// State machine class
-// ---------------------------------------------------------------------------
-
-class StateMachineImpl {
+export class StateMachineImpl {
   private state: GameState;
   private isSolving = false;
+  private generation = 0;
+  private readonly store: StateStore;
+  private readonly validateAnswerFn: (layerId: LayerId, answer: string) => Promise<boolean>;
+  private readonly implementedLayers: ReadonlySet<LayerId>;
 
-  constructor() {
+  constructor(options: StateMachineOptions = {}) {
+    this.store = options.store ?? sessionStore;
+    this.validateAnswerFn = options.validateAnswer ?? defaultValidateAnswer;
+    this.implementedLayers = options.implementedLayers ?? IMPLEMENTED_LAYERS;
+
     // Attempt to restore a previous session. Falls back to a fresh start.
-    this.state = loadState() ?? buildInitialState();
+    this.state = loadState(this.store, this.implementedLayers) ?? buildInitialState();
   }
 
   // -- Public read-only properties ------------------------------------------
@@ -72,6 +77,7 @@ class StateMachineImpl {
    *
    * Returns false in all other cases — no state change occurs on failure.
    * Safe to call repeatedly and concurrently; will not duplicate transitions.
+   * A solve started before reset() will abort without mutating state.
    */
   async solve(layerId: LayerId, answer: string): Promise<boolean> {
     if (this.isSolving) return false;
@@ -81,25 +87,32 @@ class StateMachineImpl {
     const entry = this.state.progression.find(e => e.id === layerId);
     if (!entry || entry.status !== 'active') return false;
 
+    const currentGen = this.generation;
     this.isSolving = true;
     try {
-      const correct = await validateAnswer(layerId, answer);
+      const correct = await this.validateAnswerFn(layerId, answer);
+
+      // Abort if reset() was called while hashing
+      if (this.generation !== currentGen) {
+        return false;
+      }
       if (!correct) return false;
 
-      // Re-check conditions after async validation
-      if (this.state.currentLayer !== layerId || entry.status !== 'active') {
+      // Re-find entry in the CURRENT state; never reuse a stale reference.
+      const freshEntry = this.state.progression.find(e => e.id === layerId);
+      if (!freshEntry || freshEntry.status !== 'active' || this.state.currentLayer !== layerId) {
         return false;
       }
 
       // Mark current layer solved.
-      entry.status = 'solved';
+      freshEntry.status = 'solved';
 
       // Advance to the next layer.
       const nextId = nextLayerId(layerId);
       if (nextId !== undefined) {
         const nextEntry = this.state.progression.find(e => e.id === nextId);
         if (nextEntry) {
-          const nextStatus = statusForNextLayer(nextId);
+          const nextStatus = this.implementedLayers.has(nextId) ? 'active' : 'unlocked';
           nextEntry.status = nextStatus;
           // currentLayer is only non-null when a layer is actively playable.
           this.state.currentLayer = nextStatus === 'active' ? nextId : null;
@@ -109,11 +122,13 @@ class StateMachineImpl {
         this.state.currentLayer = null;
       }
 
-      saveState(this.state);
+      saveState(this.state, this.store);
       eventBus.emit('transition', { from: layerId, to: this.state.currentLayer });
       return true;
     } finally {
-      this.isSolving = false;
+      if (this.generation === currentGen) {
+        this.isSolving = false;
+      }
     }
   }
 
@@ -130,15 +145,17 @@ class StateMachineImpl {
 
   /**
    * Clear all progress and return to the initial state.
-   * Clears sessionStorage and emits a reset event.
+   * Clears storage, aborts any in-flight solve, and emits a reset event.
    */
   reset(): void {
+    this.generation++;
     this.isSolving = false;
     this.state = buildInitialState();
-    clearState();
+    clearState(this.store);
     eventBus.emit('reset', undefined);
   }
 }
 
 // Singleton — one instance for the lifetime of the page.
 export const stateMachine = new StateMachineImpl();
+

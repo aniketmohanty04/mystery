@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { stateMachine } from '../../src/core/state-machine.js';
+import { stateMachine, StateMachineImpl } from '../../src/core/state-machine.js';
+import type { StateStore } from '../../src/core/types.js';
 
 // The correct answer for Layer 1.
 // Known here because this is a test file — the hash is in answer-validator.ts.
@@ -164,4 +165,77 @@ describe('StateMachine', () => {
     expect(events[0].from).toBe('crypto');
     expect(events[0].to).toBe('dom-inspect');
   });
+
+  // 15. Reset race: reset() during in-flight solve() aborts and does not corrupt state
+  it('reset() during in-flight solve() does not mutate state or activate extra layers', async () => {
+    // Launch solve and reset before it finishes
+    const solvePromise = stateMachine.solve('crypto', CORRECT_ANSWER);
+    stateMachine.reset();
+    const result = await solvePromise;
+
+    // Must not be successful / accepted
+    expect(result).not.toBe(true);
+    expect(result).not.toBe('accepted');
+
+    // State must remain strictly initial: crypto active, all others locked
+    expect(stateMachine.currentLayer).toBe('crypto');
+    const activeLayers = stateMachine.progression.filter(e => e.status === 'active');
+    expect(activeLayers).toHaveLength(1);
+    expect(activeLayers[0].id).toBe('crypto');
+    expect(stateMachine.progression.find(e => e.id === 'dom-inspect')?.status).toBe('locked');
+  });
+
+  // 16. Injected delayed validator and reset race
+  it('reset() during in-flight solve with injected delayed validator cleanly cancels solve', async () => {
+    let resolveValidation!: (val: boolean) => void;
+    const delayedValidator = () => new Promise<boolean>(resolve => {
+      resolveValidation = resolve;
+    });
+
+    const memoryStore: StateStore = {
+      data: null as unknown,
+      load() { return this.data; },
+      save(d) { this.data = d; },
+      clear() { this.data = null; },
+    };
+
+    const sm = new StateMachineImpl({
+      validateAnswer: delayedValidator,
+      store: memoryStore,
+    });
+
+    const solvePromise = sm.solve('crypto', CORRECT_ANSWER);
+    sm.reset();
+    resolveValidation(true);
+    const result = await solvePromise;
+
+    expect(result).toBe(false);
+    expect(sm.currentLayer).toBe('crypto');
+    expect(sm.progression[0].status).toBe('active');
+    expect(sm.progression[1].status).toBe('locked');
+    expect(memoryStore.load()).toBeNull();
+  });
+
+  // 17. Injected implementedLayers
+  it('supports injecting implementedLayers for future phase progression', async () => {
+    const memoryStore: StateStore = {
+      data: null as unknown,
+      load() { return this.data; },
+      save(d) { this.data = d; },
+      clear() { this.data = null; },
+    };
+
+    const sm = new StateMachineImpl({
+      store: memoryStore,
+      implementedLayers: new Set(['crypto', 'dom-inspect', 'cross-tab']),
+    });
+
+    await sm.solve('crypto', CORRECT_ANSWER);
+    await sm.solve('dom-inspect', 'verified');
+
+    // In this simulated phase with cross-tab implemented, cross-tab should become active!
+    expect(sm.currentLayer).toBe('cross-tab');
+    expect(sm.progression.find(e => e.id === 'cross-tab')?.status).toBe('active');
+  });
 });
+

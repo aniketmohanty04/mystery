@@ -1,4 +1,4 @@
-import type { GameState, LayerId, LayerStatus, LayerEntry } from './types.js';
+import type { GameState, LayerId, LayerStatus, LayerEntry, StateStore } from './types.js';
 import { LAYER_ORDER, IMPLEMENTED_LAYERS } from './constants.js';
 
 const STORAGE_KEY = 'mystery-box-v1';
@@ -7,94 +7,153 @@ const VALID_STATUSES = new Set<string>([
   'locked', 'unlocked', 'active', 'solved',
 ]);
 
+export class SessionStateStore implements StateStore {
+  private key: string;
+
+  constructor(key = STORAGE_KEY) {
+    this.key = key;
+  }
+
+  load(): unknown | null {
+    try {
+      const raw = sessionStorage.getItem(this.key);
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  }
+
+  save(data: unknown): void {
+    try {
+      sessionStorage.setItem(this.key, JSON.stringify(data));
+    } catch {
+      // sessionStorage unavailable (quota, private browsing, etc.)
+    }
+  }
+
+  clear(): void {
+    try {
+      sessionStorage.removeItem(this.key);
+    } catch {
+      // ignore
+    }
+  }
+}
+
+export const sessionStore = new SessionStateStore();
+
 /**
- * Validate and sanitize raw parsed JSON into a trusted GameState.
+ * Validate and sanitize raw parsed data into a trusted GameState.
  *
- * Sanitization rules:
- *  1. All LayerIds and LayerStatuses must be known values.
- *  2. Any layer with status 'active' that is NOT in IMPLEMENTED_LAYERS
- *     is demoted to 'unlocked'. This prevents session restoration from
- *     accidentally activating an unimplemented layer.
- *  3. currentLayer is derived from the progression array — it is never
- *     trusted from storage directly.
+ * Rules:
+ *  1. Root must be an object with schema version: 1.
+ *  2. progression must contain exactly the 5 layers in LAYER_ORDER with valid statuses.
+ *  3. Shape rule:
+ *     - A prefix of 0 or more 'solved' layers. A layer may only be 'solved'
+ *       if it is in implementedLayers.
+ *     - Either all 5 layers are solved (only valid if all 5 are implemented),
+ *       OR exactly ONE boundary layer stored as 'active' or 'unlocked',
+ *       followed by strictly 'locked' layers.
+ *  4. Boundary status is derived:
+ *     - If the boundary layer is in implementedLayers -> 'active'.
+ *     - If the boundary layer is not in implementedLayers -> 'unlocked'.
+ *     (Demotes forged 'active' on unimplemented layers; promotes stored 'unlocked'
+ *      when new layers become implemented).
+ *  5. currentLayer is strictly derived from sanitized progression ('active' layer id,
+ *     or null if none is active).
  */
-function validateAndSanitize(raw: unknown): GameState | null {
+export function validateAndSanitize(
+  raw: unknown,
+  implementedLayers: ReadonlySet<LayerId> = IMPLEMENTED_LAYERS,
+): GameState | null {
   if (typeof raw !== 'object' || raw === null) return null;
   const obj = raw as Record<string, unknown>;
+
+  // Schema version must be the number 1
+  if (typeof obj.version !== 'number' || obj.version !== 1) {
+    return null;
+  }
 
   if (!Array.isArray(obj.progression)) return null;
   if (obj.progression.length !== LAYER_ORDER.length) return null;
 
-  const entries: LayerEntry[] = [];
+  // Validate basic shape and strict layer ordering
+  const rawEntries: { id: LayerId; status: LayerStatus }[] = [];
   for (let i = 0; i < LAYER_ORDER.length; i++) {
     const entry = obj.progression[i];
     if (typeof entry !== 'object' || entry === null) return null;
     const e = entry as Record<string, unknown>;
 
-    // Strict layer order: index i must correspond exactly to LAYER_ORDER[i]
     if (e.id !== LAYER_ORDER[i]) return null;
     if (typeof e.status !== 'string' || !VALID_STATUSES.has(e.status)) return null;
-
-    let status = e.status as LayerStatus;
-    // Demote 'active' to 'unlocked' for unimplemented layers.
-    if (status === 'active' && !IMPLEMENTED_LAYERS.has(e.id as LayerId)) {
-      status = 'unlocked';
-    }
-    entries.push({ id: e.id as LayerId, status });
+    rawEntries.push({ id: e.id as LayerId, status: e.status as LayerStatus });
   }
 
-  // Validate linear progression integrity:
-  // - A prefix of 0 or more layers with status 'solved'
-  // - Optionally one boundary layer with status 'active' or 'unlocked'
-  // - All subsequent layers must have status 'locked'
-  let foundIncomplete = false;
-  for (const entry of entries) {
-    if (!foundIncomplete) {
-      if (entry.status === 'solved') {
-        continue;
-      }
-      foundIncomplete = true;
-      if (entry.status === 'active' || entry.status === 'unlocked' || entry.status === 'locked') {
-        continue;
-      }
+  // Count leading 'solved' layers
+  let solvedCount = 0;
+  while (solvedCount < rawEntries.length && rawEntries[solvedCount].status === 'solved') {
+    // Solved layer must be currently implemented
+    if (!implementedLayers.has(rawEntries[solvedCount].id)) {
       return null;
-    } else {
-      // Once past the active/unlocked transition point, all remaining layers must be locked
-      if (entry.status !== 'locked') {
-        return null;
-      }
     }
+    solvedCount++;
   }
 
-  // Derive currentLayer from the sanitized progression.
-  const activeEntry = entries.find(e => e.status === 'active');
-  const currentLayer: LayerId | null = activeEntry?.id ?? null;
-
-  return { currentLayer, progression: entries };
-}
-
-export function saveState(state: GameState): void {
-  try {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch {
-    // sessionStorage unavailable (private mode, quota exceeded, test env).
+  const sanitizedEntries: LayerEntry[] = [];
+  for (let i = 0; i < solvedCount; i++) {
+    sanitizedEntries.push({ id: rawEntries[i].id, status: 'solved' });
   }
-}
 
-export function loadState(): GameState | null {
-  try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    return validateAndSanitize(JSON.parse(raw));
-  } catch {
+  if (solvedCount === LAYER_ORDER.length) {
+    // All five solved: only valid if all 5 layers are implemented
+    return {
+      currentLayer: null,
+      progression: sanitizedEntries,
+    };
+  }
+
+  // Next entry must be the boundary layer: must be stored as 'active' or 'unlocked'
+  const boundaryRaw = rawEntries[solvedCount];
+  if (boundaryRaw.status !== 'active' && boundaryRaw.status !== 'unlocked') {
     return null;
   }
+
+  // Derive boundary status
+  const boundaryStatus: LayerStatus = implementedLayers.has(boundaryRaw.id) ? 'active' : 'unlocked';
+  sanitizedEntries.push({ id: boundaryRaw.id, status: boundaryStatus });
+
+  // All remaining layers after boundary must be 'locked'
+  for (let i = solvedCount + 1; i < LAYER_ORDER.length; i++) {
+    if (rawEntries[i].status !== 'locked') {
+      return null;
+    }
+    sanitizedEntries.push({ id: rawEntries[i].id, status: 'locked' });
+  }
+
+  const activeEntry = sanitizedEntries.find(e => e.status === 'active');
+  const currentLayer: LayerId | null = activeEntry?.id ?? null;
+
+  return { currentLayer, progression: sanitizedEntries };
 }
 
-export function clearState(): void {
-  try {
-    sessionStorage.removeItem(STORAGE_KEY);
-  } catch {
-    // ignore
-  }
+export function saveState(state: GameState, store: StateStore = sessionStore): void {
+  store.save({
+    version: 1,
+    progression: state.progression,
+  });
 }
+
+export function loadState(
+  store: StateStore = sessionStore,
+  implementedLayers: ReadonlySet<LayerId> = IMPLEMENTED_LAYERS,
+): GameState | null {
+  const raw = store.load();
+  if (raw === null || raw === undefined) return null;
+  return validateAndSanitize(raw, implementedLayers);
+}
+
+export function clearState(store: StateStore = sessionStore): void {
+  store.clear();
+}
+

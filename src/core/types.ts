@@ -66,3 +66,13 @@ export interface PuzzleLayer {
    */
   submitAnswer(answer: string): Promise<boolean>;
 }
+
+/**
+ * Pluggable storage abstraction for game progression state.
+ */
+export interface StateStore {
+  load(): unknown | null;
+  save(data: unknown): void;
+  clear(): void;
+}
+
