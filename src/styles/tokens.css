@@ -1,50 +1,57 @@
 /* ==========================================================================
-   Design Tokens — Mystery Box (Cybersecurity Forensics Workstation)
-   Classified Intelligence & Security Operations Center (SOC) Aesthetic
+   Design Tokens — Mystery Box (Cybersecurity Neural Interface)
+   Electric Cyan, Neon Violet, Deep Midnight Indigo, and Circuit Glow
+   Matches Cyber Security Padlock & Cryptographic Neural Network Aesthetic
    ========================================================================== */
 
 :root {
   /* ---------------------------------------------------------------------- */
-  /* Color palette — Deep Graphite, Forensic Amber, Restrained Emerald       */
+  /* Color palette — Midnight Cyber Space, Electric Cyan, Neon Violet       */
   /* ---------------------------------------------------------------------- */
 
-  /* Backgrounds: Deep graphite & near-black SOC console layers */
-  --col-bg:              #0a0c10;   /* Deep graphite base canvas             */
-  --col-surface:         #11141b;   /* Primary terminal/card surface         */
-  --col-surface-2:       #171b23;   /* Secondary panel / interactive card    */
-  --col-surface-3:       #1e232e;   /* Elevated hover & active module        */
-  --col-mono-bg:         #07080b;   /* Low-level telemetry / raw log canvas  */
+  /* Backgrounds: Deep midnight indigo & cyber space void */
+  --col-bg:              #060714;   /* Deep midnight cyber canvas            */
+  --col-surface:         #0d0b24;   /* Primary cyber workstation surface     */
+  --col-surface-2:       #141138;   /* Elevated cyber panel / card           */
+  --col-surface-3:       #1c174c;   /* Elevated hover & active module        */
+  --col-mono-bg:         #080718;   /* Low-level telemetry / raw log canvas  */
 
-  /* Borders & technical separators */
-  --col-border:          #232936;   /* Hairline technical boundary           */
-  --col-border-2:        #2e3648;   /* Elevated / active panel border        */
-  --col-border-subtle:   #181d26;   /* Subdued hairline grid separator       */
+  /* Borders & technical cyber separators */
+  --col-border:          rgba(168, 85, 247, 0.22); /* Subtle cyber violet boundary   */
+  --col-border-2:        rgba(0, 229, 255, 0.38);  /* Electric cyan active border    */
+  --col-border-subtle:   rgba(139, 92, 246, 0.14); /* Subdued grid hairline         */
 
-  /* Text: High legibility off-white & forensic slate */
-  --col-text-1:          #f1f5f9;   /* Primary off-white typography          */
-  --col-text-2:          #94a3b8;   /* Secondary cool slate for narratives   */
-  --col-text-3:          #596579;   /* Technical metadata, labels & hashes   */
+  /* Text: High legibility luminous off-white & cyber lavender */
+  --col-text-1:          #f8fafd;   /* Primary luminous white                */
+  --col-text-2:          #a5b4fc;   /* Secondary cyber lavender / slate      */
+  --col-text-3:          #6366f1;   /* Technical metadata, labels & hashes   */
 
-  /* Primary Accent — Forensic Amber (Evidence, Telemetry, Investigation) */
-  --col-accent:          #f59e0b;   /* Tactical forensic amber               */
-  --col-accent-hover:    #d97706;   /* Deep amber hover state                */
-  --col-accent-dim:      #78350f;   /* Subdued amber outline / shadow        */
-  --col-accent-subtle:   rgba(245, 158, 11, 0.12); /* Ambient amber glow   */
-  --col-accent-text:     #f59e0b;   /* Amber text highlight                  */
+  /* Primary Accent — Electric Neon Cyan (Cryptographic Signal & Laser) */
+  --col-accent:          #00e5ff;   /* Electric neon cyan                    */
+  --col-accent-hover:    #38bdf8;   /* Bright laser cyan hover               */
+  --col-accent-dim:      rgba(0, 229, 255, 0.22);  /* Subdued cyan outline   */
+  --col-accent-subtle:   rgba(0, 229, 255, 0.08);  /* Ambient cyan wash      */
+  --col-accent-text:     #00f0ff;   /* Neon cyan text highlight              */
+
+  /* Secondary Accent — Electric Violet / Cyber Purple */
+  --col-violet:          #a855f7;   /* Electric violet                       */
+  --col-violet-dim:      rgba(168, 85, 247, 0.25);
+  --col-violet-glow:     rgba(168, 85, 247, 0.45);
+  --col-magenta:         #d946ef;   /* Cyber magenta                         */
 
   /* Verified State — Restrained Emerald (Authenticated, Passed, Sealed) */
-  --col-success:         #10b981;   /* Restrained terminal green             */
+  --col-success:         #10b981;   /* Terminal verified emerald             */
   --col-success-hover:   #059669;   /* Deep emerald hover                    */
-  --col-success-dim:     rgba(16, 185, 129, 0.12); /* Subtle green backdrop*/
-  --col-success-text:    #10b981;   /* Emerald text indicator                */
+  --col-success-dim:     rgba(16, 185, 129, 0.16); /* Subtle emerald backdrop*/
+  --col-success-text:    #34d399;   /* Emerald text indicator                */
 
-  /* Alert / Error / Timeout — Muted Crimson */
-  --col-error:           #ef4444;   /* Crimson alert for intrusions & errors */
-  --col-error-dim:       rgba(239, 68, 68, 0.12);  /* Alert backdrop       */
+  /* Alert / Error / Timeout — Neon Crimson */
+  --col-error:           #f43f5e;   /* Cyber rose/crimson alert              */
+  --col-error-dim:       rgba(244, 63, 94, 0.16);  /* Alert backdrop         */
 
   /* System Info / Telemetry */
-  --col-info:            #38bdf8;   /* Cyan telemetry metadata               */
-  --col-info-dim:        rgba(56, 189, 248, 0.12);
+  --col-info:            #00e5ff;   /* Cyan telemetry metadata               */
+  --col-info-dim:        rgba(0, 229, 255, 0.15);
 
   /* ---------------------------------------------------------------------- */
   /* Typography                                                              */
@@ -100,14 +107,15 @@
   /* Geometry                                                                */
   /* ---------------------------------------------------------------------- */
 
-  --radius-sm:           3px;
-  --radius-md:           4px;
-  --radius-lg:           6px;
+  --radius-sm:           4px;
+  --radius-md:           6px;
+  --radius-lg:           8px;
 
-  /* Technical shadows */
-  --shadow-panel:        0 4px 20px rgba(0, 0, 0, 0.6);
-  --shadow-active:       0 0 16px rgba(245, 158, 11, 0.15);
-  --shadow-verified:     0 0 16px rgba(16, 185, 129, 0.15);
+  /* Cyber Glow & Glassmorphism Shadows */
+  --shadow-panel:        0 8px 32px rgba(6, 7, 20, 0.8), 0 0 1px rgba(168, 85, 247, 0.35);
+  --shadow-active:       0 0 24px rgba(0, 229, 255, 0.35), 0 0 45px rgba(168, 85, 247, 0.2);
+  --shadow-verified:     0 0 24px rgba(16, 185, 129, 0.35);
+  --shadow-cyber:        0 0 30px rgba(168, 85, 247, 0.25);
 }
 
 /* Reduced motion preference */

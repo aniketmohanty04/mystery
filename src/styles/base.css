@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Base — Reset, typography defaults, utilities
+   Base — Reset, typography defaults, utilities (Cybersecurity Neural Canvas)
    ========================================================================== */
 
 /* Box model reset */
@@ -21,8 +21,15 @@ html {
 
 body {
   background-color: var(--col-bg);
-  background-image: radial-gradient(circle at 50% 50%, rgba(35, 41, 54, 0.5) 1px, transparent 1px);
-  background-size: 28px 28px;
+  background-image: 
+    radial-gradient(circle at 80% 20%, rgba(0, 229, 255, 0.12) 0%, transparent 40%),
+    radial-gradient(circle at 15% 45%, rgba(168, 85, 247, 0.15) 0%, transparent 45%),
+    radial-gradient(circle at 50% 90%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+    linear-gradient(rgba(168, 85, 247, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 229, 255, 0.05) 1px, transparent 1px),
+    radial-gradient(circle at 50% 50%, rgba(0, 229, 255, 0.2) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 36px 36px, 36px 36px, 18px 18px;
+  background-attachment: fixed;
   color: var(--col-text-1);
   font-family: var(--font-ui);
   font-size: var(--text-base);
@@ -35,7 +42,7 @@ body {
 /* Headings */
 h1, h2, h3, h4, h5, h6 {
   line-height: 1.25;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--col-text-1);
   letter-spacing: -0.01em;
 }
@@ -94,12 +101,13 @@ hr {
 :focus-visible {
   outline: 2px solid var(--col-accent);
   outline-offset: 2px;
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.6);
   border-radius: var(--radius-sm);
 }
 
 /* Text selection */
 ::selection {
-  background-color: var(--col-accent-dim);
+  background-color: rgba(168, 85, 247, 0.4);
   color: #ffffff;
 }
 
@@ -110,16 +118,17 @@ hr {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--col-bg);
+  background: #060714;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--col-border-2);
+  background: rgba(168, 85, 247, 0.3);
   border-radius: var(--radius-sm);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--col-text-3);
+  background: var(--col-accent);
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.6);
 }
 
 /* ==========================================================================
