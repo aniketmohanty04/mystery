@@ -203,23 +203,23 @@ export class TemporalLayer implements PuzzleLayer {
           <div id="temporal-scrubber-mount"></div>
 
           <!-- Sequence Preview Bar -->
-          <div class="timeline-preview" style="padding: 0.75rem 1rem; background: rgba(15, 23, 42, 0.85); border: 1px dashed #475569; border-radius: 4px; font-family: monospace;">
+          <div class="timeline-preview" style="padding: 0.75rem 1rem; background: var(--col-mono-bg); border: 1px dashed var(--col-border-2); border-radius: 4px; font-family: monospace;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
-              <span style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase;">
+              <span style="font-size: 0.75rem; color: var(--col-text-3); text-transform: uppercase;">
                 Reconstructed Incident Chronology:
               </span>
               <button id="reset-order-btn" type="button" class="btn btn--ghost btn--sm" style="font-size: 0.75rem;">
                 Reset Order
               </button>
             </div>
-            <strong id="timeline-sequence-preview" style="font-size: 0.95rem; color: #38bdf8; word-break: break-all;">
+            <strong id="timeline-sequence-preview" style="font-size: 0.95rem; color: var(--col-accent); word-break: break-all;">
               <!-- Populated by updateSequencePreview() -->
             </strong>
           </div>
 
           <!-- Full Event List with Card Controls & Drag-Drop -->
           <div style="margin-top: 1rem;">
-            <span style="font-family: monospace; font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 0.5rem;">
+            <span style="font-family: monospace; font-size: 0.8rem; color: var(--col-text-3); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 0.5rem;">
               All Telemetry Evidence Records (Drag or use controls to reorder):
             </span>
             <ol id="timeline-list" class="timeline-list" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.75rem;">
@@ -694,11 +694,11 @@ export class TemporalLayer implements PuzzleLayer {
                 <span class="badge badge--active" style="font-family: monospace; font-size: 0.75rem;">
                   SLOT #${this.currentScrubberIndex + 1} &bull; ${activeEv.evidenceType}
                 </span>
-                <span style="font-family: monospace; font-size: 0.8rem; color: #94a3b8; margin-left: 0.5rem;">
+                <span style="font-family: monospace; font-size: 0.8rem; color: var(--col-text-3); margin-left: 0.5rem;">
                   ${activeEv.source}
                 </span>
               </div>
-              <strong style="color: #38bdf8; font-family: monospace; font-size: 1rem;">
+              <strong style="color: var(--col-accent); font-family: monospace; font-size: 1rem;">
                 ${activeEv.id}
               </strong>
             </div>
@@ -731,7 +731,7 @@ export class TemporalLayer implements PuzzleLayer {
             </div>
 
             <div class="inspector-actions">
-              <span style="font-family: monospace; font-size: 0.75rem; color: #94a3b8; margin-right: auto;">
+              <span style="font-family: monospace; font-size: 0.75rem; color: var(--col-text-3); margin-right: auto;">
                 Sequence Position Controls:
               </span>
               <button
@@ -843,14 +843,14 @@ export class TemporalLayer implements PuzzleLayer {
             <span class="badge badge--active" style="font-family: monospace; font-size: 0.75rem;">
               POS #${index + 1}
             </span>
-            <strong style="color: #38bdf8; font-family: monospace;">${ev.id}</strong>
-            <span style="font-size: 0.75rem; background: #1e293b; color: #a5b4fc; padding: 0.15rem 0.4rem; border-radius: 3px; font-family: monospace;">
+            <strong style="color: var(--col-accent); font-family: monospace;">${ev.id}</strong>
+            <span style="font-size: 0.75rem; background: var(--col-surface-2); color: var(--col-accent); border: 1px solid var(--col-border); padding: 0.15rem 0.4rem; border-radius: 3px; font-family: monospace;">
               ${ev.evidenceType}
             </span>
             <span style="font-family: monospace; font-size: 0.8rem; color: #fbbf24;">
               [RAW: ${ev.rawTimestamp}]
             </span>
-            <span style="font-family: monospace; font-size: 0.8rem; color: #38bdf8;">
+            <span style="font-family: monospace; font-size: 0.8rem; color: var(--col-accent);">
               [UTC: ${ev.normalizedUtc}]
             </span>
           </div>
@@ -875,15 +875,15 @@ export class TemporalLayer implements PuzzleLayer {
           </div>
         </div>
 
-        <div style="font-weight: 600; color: #f1f5f9; font-size: 0.95rem;">
+        <div style="font-weight: 600; color: var(--col-text-1); font-size: 0.95rem;">
           ${ev.title}
         </div>
 
-        <p style="margin: 0; font-size: 0.85rem; color: #cbd5e1; line-height: 1.4;">
+        <p style="margin: 0; font-size: 0.85rem; color: var(--col-text-2); line-height: 1.4;">
           ${ev.description}
         </p>
 
-        <div style="font-size: 0.78rem; color: #94a3b8; background: rgba(15, 23, 42, 0.5); padding: 0.4rem 0.6rem; border-left: 3px solid #38bdf8; border-radius: 2px; font-family: monospace;">
+        <div style="font-size: 0.78rem; color: var(--col-text-2); background: var(--col-mono-bg); padding: 0.4rem 0.6rem; border-left: 3px solid var(--col-accent); border-radius: 2px; font-family: monospace;">
           <strong>FORENSIC NOTE:</strong> ${ev.forensicNote}
         </div>
       `;

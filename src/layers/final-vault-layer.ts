@@ -62,6 +62,13 @@ export const EVIDENCE_DOSSIERS: readonly EvidenceDossier[] = [
   },
 ];
 
+export const EXPECTED_QUADRANTS: readonly string[] = [
+  'KNOWLEDGE',
+  'VERIFIED',
+  'SYNCHRONIZED',
+  'EV-955',
+];
+
 export const FINAL_VAULT_KEY = 'KNOWLEDGE-VERIFIED-SYNCHRONIZED-EV-955';
 
 const HINTS: readonly string[] = [
@@ -77,10 +84,19 @@ export class FinalVaultLayer implements PuzzleLayer {
 
   private container: HTMLElement | null = null;
   private root: HTMLElement | null = null;
-  private isSolved = false;
+  private _isSolved = false;
   private isSubmitting = false;
   private hintsRevealed = 0;
   private quadrantTokens: (string | null)[] = [null, null, null, null];
+  private dossiersAssembled = false;
+
+  get isSolved(): boolean {
+    return this._isSolved;
+  }
+
+  get isDossiersAssembled(): boolean {
+    return this.dossiersAssembled;
+  }
 
   private formHandler: ((e: Event) => void) | null = null;
   private buttonHandlers: Map<HTMLElement, { type: string; fn: EventListener }> = new Map();
@@ -121,7 +137,7 @@ export class FinalVaultLayer implements PuzzleLayer {
               </div>
             </div>
             <div class="vault-status-indicator">
-              <span id="vault-lock-status">INTERLOCK SYSTEM ENGAGED &bull; 4 BOLTS PRIMED</span>
+              <span id="vault-lock-status">INTERLOCK SYSTEM ENGAGED &bull; 0 OF 4 QUADRANTS ALIGNED</span>
             </div>
           </div>
 
@@ -139,7 +155,7 @@ export class FinalVaultLayer implements PuzzleLayer {
           <!-- Evidence Synthesis Matrix (4 Dossiers) -->
           <section aria-label="Evidence Synthesis Dossier Matrix">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-              <span style="font-family: monospace; font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em;">
+              <span style="font-family: monospace; font-size: 0.8rem; color: var(--col-text-3); text-transform: uppercase; letter-spacing: 0.05em;">
                 EVIDENCE SYNTHESIS DOSSIERS (CLICK TO EXTRACT QUADRANT TOKENS):
               </span>
               <button id="btn-assemble-all" type="button" class="btn btn--secondary btn--sm" style="font-size: 0.75rem;">
@@ -180,8 +196,8 @@ export class FinalVaultLayer implements PuzzleLayer {
           <!-- Key Assembly Display -->
           <div class="key-assembly-bar" aria-label="Key Synthesis Quadrant Assembly">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-family: monospace; font-size: 0.75rem; color: #94a3b8; text-transform: uppercase;">
-                Master Key Quadrants Synthesis:
+              <span id="quadrant-progress-label" style="font-family: monospace; font-size: 0.75rem; color: var(--col-text-3); text-transform: uppercase;">
+                Master Key Quadrants Synthesis (0/4):
               </span>
               <button id="btn-clear-key" type="button" class="btn btn--ghost btn--sm" style="font-size: 0.75rem;">
                 Clear Assembly
@@ -271,6 +287,21 @@ export class FinalVaultLayer implements PuzzleLayer {
   // Quadrant Assembly & Interaction
   // ---------------------------------------------------------------------------
 
+  isQuadrantValid(index: number): boolean {
+    if (index < 0 || index >= 4) return false;
+    return this.quadrantTokens[index] === EXPECTED_QUADRANTS[index];
+  }
+
+  getValidQuadrantCount(): number {
+    let count = 0;
+    for (let i = 0; i < 4; i++) {
+      if (this.isQuadrantValid(i)) {
+        count++;
+      }
+    }
+    return count;
+  }
+
   extractToken(quadrant: number, token: string): void {
     if (quadrant < 0 || quadrant > 3 || this.isSolved) return;
     this.quadrantTokens[quadrant] = token;
@@ -279,16 +310,37 @@ export class FinalVaultLayer implements PuzzleLayer {
 
   assembleAllTokens(): void {
     if (this.isSolved) return;
-    for (const dossier of EVIDENCE_DOSSIERS) {
-      this.quadrantTokens[dossier.quadrant] = dossier.token;
+    this.dossiersAssembled = true;
+
+    // Update button state to indicate dossiers have been assembled
+    const assembleBtn = this.root?.querySelector<HTMLButtonElement>('#btn-assemble-all');
+    if (assembleBtn) {
+      assembleBtn.textContent = 'Dossiers Assembled (4/4)';
+      assembleBtn.disabled = true;
     }
-    this.updateQuadrantDisplay();
+
+    // Mark dossiers as assembled in UI
+    const cards = this.root?.querySelectorAll<HTMLElement>('.dossier-card');
+    cards?.forEach(card => card.classList.add('is-assembled'));
+
+    // Provide feedback that dossiers are assembled and player must extract tokens
+    const statusEl = this.root?.querySelector<HTMLElement>('#vault-status');
+    this.setStatus(
+      statusEl,
+      'info',
+      'Evidence dossiers assembled from Archives 001\u2013004. Extract all 4 quadrant credentials to synthesize the Master Key.'
+    );
   }
 
   clearKey(): void {
     if (this.isSolved) return;
     this.quadrantTokens = [null, null, null, null];
     this.updateQuadrantDisplay();
+    const statusEl = this.root?.querySelector<HTMLElement>('#vault-status');
+    if (statusEl) {
+      statusEl.textContent = '';
+      statusEl.className = 'status-msg';
+    }
   }
 
   private updateQuadrantDisplay(): void {
@@ -301,34 +353,53 @@ export class FinalVaultLayer implements PuzzleLayer {
       const dossierCard = this.root.querySelector<HTMLElement>(`.dossier-card[data-quadrant="${i}"]`);
 
       const val = this.quadrantTokens[i];
-      if (val) {
-        slot?.classList.add('is-filled');
-        if (valEl) valEl.textContent = val;
-        bolt?.classList.add('is-ready');
-        dossierCard?.classList.add('is-extracted');
+      if (val !== null) {
+        if (this.isQuadrantValid(i)) {
+          slot?.classList.remove('is-invalid');
+          slot?.classList.add('is-filled');
+          if (valEl) valEl.textContent = val;
+          bolt?.classList.add('is-ready');
+          dossierCard?.classList.add('is-extracted');
+        } else {
+          slot?.classList.remove('is-filled');
+          slot?.classList.add('is-invalid');
+          if (valEl) valEl.textContent = 'INVALID';
+          bolt?.classList.remove('is-ready');
+          dossierCard?.classList.remove('is-extracted');
+        }
       } else {
-        slot?.classList.remove('is-filled');
+        slot?.classList.remove('is-filled', 'is-invalid');
         if (valEl) valEl.innerHTML = '&mdash;';
         bolt?.classList.remove('is-ready');
         dossierCard?.classList.remove('is-extracted');
       }
     }
 
+    const validCount = this.getValidQuadrantCount();
+
+    // Update progress label in Key Assembly Bar
+    const progressLabel = this.root.querySelector<HTMLElement>('#quadrant-progress-label');
+    if (progressLabel) {
+      progressLabel.textContent = `Master Key Quadrants Synthesis (${validCount}/4):`;
+    }
+
     // Update input field if any tokens are present
-    const assembledParts = this.quadrantTokens.filter((t): t is string => t !== null);
     const input = this.root.querySelector<HTMLInputElement>('#vault-key-input');
     if (input && !this.isSolved) {
-      input.value = this.quadrantTokens.map(t => t ?? '???').join('-');
-      if (assembledParts.length === 4) {
+      const hasAnyToken = this.quadrantTokens.some(t => t !== null);
+      if (!hasAnyToken) {
+        input.value = '';
+      } else if (validCount === 4) {
         input.value = this.quadrantTokens.join('-');
+      } else {
+        input.value = this.quadrantTokens.map((t, idx) => (this.isQuadrantValid(idx) ? t : '???')).join('-');
       }
     }
 
     // Update bolt status message
     const lockStatus = this.root.querySelector<HTMLElement>('#vault-lock-status');
     if (lockStatus && !this.isSolved) {
-      const primedCount = assembledParts.length;
-      lockStatus.textContent = `INTERLOCK SYSTEM ENGAGED \u2022 ${primedCount} OF 4 BOLTS PRIMED`;
+      lockStatus.textContent = `INTERLOCK SYSTEM ENGAGED \u2022 ${validCount} OF 4 QUADRANTS ALIGNED`;
     }
   }
 
@@ -345,46 +416,107 @@ export class FinalVaultLayer implements PuzzleLayer {
       return 'busy';
     }
 
-    this.isSubmitting = true;
     const statusEl = this.root?.querySelector<HTMLElement>('#vault-status');
     const submitBtn = this.root?.querySelector<HTMLButtonElement>('#vault-submit-btn');
     const input = this.root?.querySelector<HTMLInputElement>('#vault-key-input');
 
+    const normalized = normalizeAnswer(answer ?? '');
+    if (!normalized) {
+      this.setStatus(statusEl, 'error', 'Invalid key format. Enter the four synthesized quadrant credentials separated by hyphens (e.g. QUAD1-QUAD2-QUAD3-QUAD4).');
+      input?.focus();
+      return 'incorrect';
+    }
+
+    // Single-stage answer detection
+    if (normalized === 'MYSTERY-BOX-OPENS-WITH-KNOWLEDGE') {
+      this.setStatus(statusEl, 'error', 'Single-stage transmission key detected. The final vault cannot be opened with isolated credentials. Synthesize tokens from all four forensic files.');
+      input?.focus();
+      return 'incorrect';
+    }
+    if (normalized === 'VERIFIED') {
+      this.setStatus(statusEl, 'error', 'Single-stage seal status detected. Combine this token with credentials from the other three files.');
+      input?.focus();
+      return 'incorrect';
+    }
+    if (normalized === 'SIGNAL-SYNCHRONIZED') {
+      this.setStatus(statusEl, 'error', 'Single-stage carrier signal detected. Combine this token with credentials from the other three files.');
+      input?.focus();
+      return 'incorrect';
+    }
+    if (normalized.includes('EV-302') && normalized.includes('EV-814')) {
+      this.setStatus(statusEl, 'error', 'Single-stage chronology sequence detected. Extract the culminating lockdown incident identifier for Quadrant 4.');
+      input?.focus();
+      return 'incorrect';
+    }
+
+    const parts = normalized.split('-');
+    let extracted: string[] = [];
+    if (parts.length === 5 && parts[3] === 'EV') {
+      extracted = [parts[0], parts[1], parts[2], `${parts[3]}-${parts[4]}`];
+    } else {
+      extracted = parts;
+    }
+
+    let alignedCount = 0;
+    for (let i = 0; i < 4; i++) {
+      if (extracted[i] === EXPECTED_QUADRANTS[i]) {
+        alignedCount++;
+      }
+    }
+
+    if (extracted.length !== 4 || alignedCount < 4) {
+      const feedback = this.generateDiagnosticFeedback(answer);
+      this.setStatus(statusEl, 'error', feedback);
+      input?.focus();
+      return 'incorrect';
+    }
+
+    // All four tokens are valid! Proceed with authoritative state machine solve.
+    this.isSubmitting = true;
     if (submitBtn) {
       submitBtn.disabled = true;
       submitBtn.textContent = 'Verifying Master Key\u2026';
     }
 
-    const result = await stateMachine.solve(this.id, answer);
+    try {
+      const result = await stateMachine.solve(this.id, answer);
 
-    this.isSubmitting = false;
+      if (result === 'accepted') {
+        // Synchronize local quadrant state to show 4/4 fully aligned
+        for (let i = 0; i < 4; i++) {
+          this.quadrantTokens[i] = EXPECTED_QUADRANTS[i];
+        }
+        this.updateQuadrantDisplay();
 
-    if (result === 'accepted') {
-      this.isSolved = true;
-      this.triggerVaultOpeningSequence();
-    } else if (result === 'incorrect') {
-      const feedback = this.generateDiagnosticFeedback(answer);
-      this.setStatus(statusEl, 'error', feedback);
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Disengage Master Vault';
+        this._isSolved = true;
+        this.triggerVaultOpeningSequence();
+        return 'accepted';
+      } else if (result === 'incorrect') {
+        this.setStatus(statusEl, 'error', 'Access Denied: Station state machine rejected vault key. Prerequisite investigation files must be completed.');
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Disengage Master Vault';
+        }
+        input?.focus();
+        return 'incorrect';
+      } else if (result === 'error') {
+        this.setStatus(statusEl, 'error', VALIDATION_UNAVAILABLE_MESSAGE);
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Disengage Master Vault';
+        }
+        input?.focus();
+        return 'error';
+      } else {
+        if (submitBtn && !this.isSolved) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Disengage Master Vault';
+        }
+        return result;
       }
-      input?.focus();
-    } else if (result === 'error') {
-      this.setStatus(statusEl, 'error', VALIDATION_UNAVAILABLE_MESSAGE);
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Disengage Master Vault';
-      }
-      input?.focus();
-    } else {
-      if (submitBtn && !this.isSolved) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Disengage Master Vault';
-      }
+    } finally {
+      this.isSubmitting = false;
     }
-
-    return result;
   }
 
   private generateDiagnosticFeedback(rawInput: string): string {
@@ -410,10 +542,6 @@ export class FinalVaultLayer implements PuzzleLayer {
     const targetTokens = ['KNOWLEDGE', 'VERIFIED', 'SYNCHRONIZED', 'EV-955'];
     const parts = normalized.split('-');
 
-    // Token count verification
-    // Since EV-955 contains a hyphen, normalizeAnswer turns it into EV-955.
-    // Normalized format should be KNOWLEDGE-VERIFIED-SYNCHRONIZED-EV-955 (4 tokens: KNOWLEDGE, VERIFIED, SYNCHRONIZED, EV-955)
-    // When split by '-', parts has length 5: ['KNOWLEDGE', 'VERIFIED', 'SYNCHRONIZED', 'EV', '955']
     let extracted: string[] = [];
     if (parts.length === 5 && parts[3] === 'EV') {
       extracted = [parts[0], parts[1], parts[2], `${parts[3]}-${parts[4]}`];
@@ -540,7 +668,7 @@ export class FinalVaultLayer implements PuzzleLayer {
           </tbody>
         </table>
 
-        <div style="background: rgba(0, 0, 0, 0.4); border-left: 3px solid var(--col-success); padding: 0.75rem 1rem; border-radius: 2px; font-family: monospace; font-size: 0.8rem; color: #a5b4fc;">
+        <div style="background: var(--col-mono-bg); border-left: 3px solid var(--col-success); padding: 0.75rem 1rem; border-radius: 2px; font-family: monospace; font-size: 0.8rem; color: var(--col-text-2);">
           <strong>FORENSIC CONCLUSION:</strong> Unauthorized exfiltration originated from Sublevel 2 Control Room via console override at 02:55 UTC. All exfiltrated data vault archives were intercepted. Master physical facility lockdown verified effective.
         </div>
 

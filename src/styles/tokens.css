@@ -9,37 +9,37 @@
   /* ---------------------------------------------------------------------- */
 
   /* Backgrounds */
-  --col-bg:         #111110;   /* Warm near-black — page background         */
-  --col-surface:    #191918;   /* Slightly lifted — card surfaces           */
-  --col-surface-2:  #212120;   /* Further lifted — artifact blocks          */
+  --col-bg:         #000000;   /* Pitch black — terminal canvas             */
+  --col-surface:    #040d06;   /* Deep terminal vault surface               */
+  --col-surface-2:  #08170b;   /* Lifted surface for blocks & artifacts     */
 
   /* Borders & separators */
-  --col-border:     #2c2c2a;   /* Subtle separator lines                    */
-  --col-border-2:   #383836;   /* Slightly more visible border              */
+  --col-border:     #123519;   /* Subtle terminal green border              */
+  --col-border-2:   #1b4f26;   /* Slightly more visible terminal border     */
 
   /* Text */
-  --col-text-1:     #e8e4dc;   /* Warm off-white — primary content          */
-  --col-text-2:     #8c8780;   /* Muted stone — secondary / narrative       */
-  --col-text-3:     #565451;   /* Dim — labels, metadata, locked states     */
+  --col-text-1:     #f0fdf4;   /* Crisp white-mint — primary content        */
+  --col-text-2:     #6cbd80;   /* Phosphor green — secondary / narrative    */
+  --col-text-3:     #34633d;   /* Muted terminal green — labels & metadata  */
 
-  /* Signal accent — muted amber */
-  --col-accent:     #c49b3c;   /* Primary accent — active states            */
-  --col-accent-dim: #6b5420;   /* Dim accent — unlocked borders             */
-  --col-accent-text:#c49b3c;   /* Accent text color                         */
+  /* Signal accent — phosphor neon matrix green */
+  --col-accent:     #00ff66;   /* Primary accent — active states & glow     */
+  --col-accent-dim: #0c4d21;   /* Dim accent — unlocked borders & subtle bg */
+  --col-accent-text:#00ff66;   /* Bright neon green text                    */
 
   /* Semantic states */
-  --col-success:    #5c8a5e;   /* Muted green — correct / solved            */
-  --col-error:      #965040;   /* Muted red-brown — incorrect               */
-  --col-info:       #8c8780;   /* Neutral info messages                     */
+  --col-success:    #00ff66;   /* Neon matrix green — correct / solved      */
+  --col-error:      #ef4444;   /* Clear red — error states                  */
+  --col-info:       #6cbd80;   /* Neutral terminal info messages            */
 
   /* Monospace / code surfaces */
-  --col-mono-bg:    #0d0d0c;   /* Dark background for ciphertext blocks     */
+  --col-mono-bg:    #020603;   /* Pure dark terminal background             */
 
   /* ---------------------------------------------------------------------- */
   /* Typography                                                              */
   /* ---------------------------------------------------------------------- */
 
-  --font-editorial: Georgia, 'Times New Roman', serif;
+  --font-editorial: 'JetBrains Mono', 'Fira Code', Consolas, 'Courier New', monospace;
   --font-ui:        system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
   --font-mono:      'JetBrains Mono', 'Fira Code', Consolas, 'Courier New', monospace;
 

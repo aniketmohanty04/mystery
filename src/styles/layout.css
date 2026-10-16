@@ -42,16 +42,16 @@
 .app-title {
   font-family: var(--font-editorial);
   font-size: var(--text-xl);
-  font-weight: 400;
-  color: var(--col-text-1);
-  letter-spacing: -0.01em;
+  font-weight: 700;
+  color: var(--col-accent);
+  letter-spacing: 0.02em;
 }
 
 .app-subtitle {
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
-  color: var(--col-text-3);
-  letter-spacing: 0.08em;
+  color: var(--col-text-2);
+  letter-spacing: 0.1em;
   margin-top: 1px;
   text-transform: uppercase;
 }

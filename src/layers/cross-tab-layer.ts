@@ -64,11 +64,11 @@ export class CrossTabLayer implements PuzzleLayer {
           </p>
         </div>
 
-        <div class="terminal-panel" style="margin: 1.5rem 0; padding: 1.25rem; background: rgba(15, 23, 42, 0.7); border: 1px solid #334155; border-radius: 6px;">
-          <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.75rem; font-family: monospace; font-size: 0.85rem; color: #94a3b8;">
-            <span>TERMINAL ID: <strong id="cross-tab-tab-id" style="color: #38bdf8;">${this.manager.tabId}</strong></span>
-            <span>SESSION: <strong id="cross-tab-session-id" style="color: #cbd5e1;">${this.manager.sessionId}</strong></span>
-            <span>TRANSPORT: <strong id="cross-tab-transport" style="color: #a78bfa;">${this.manager.mode.toUpperCase()}</strong></span>
+        <div class="terminal-panel" style="margin: 1.5rem 0; padding: 1.25rem; background: var(--col-surface); border: 1px solid var(--col-border); border-radius: 6px;">
+          <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.75rem; font-family: monospace; font-size: 0.85rem; color: var(--col-text-2);">
+            <span>TERMINAL ID: <strong id="cross-tab-tab-id" style="color: var(--col-accent);">${this.manager.tabId}</strong></span>
+            <span>SESSION: <strong id="cross-tab-session-id" style="color: var(--col-text-1);">${this.manager.sessionId}</strong></span>
+            <span>TRANSPORT: <strong id="cross-tab-transport" style="color: var(--col-accent);">${this.manager.mode.toUpperCase()}</strong></span>
           </div>
 
           <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.25rem; font-family: monospace; font-size: 0.85rem;">
@@ -77,11 +77,11 @@ export class CrossTabLayer implements PuzzleLayer {
           </div>
 
           <div class="carrier-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
-            <div style="padding: 1rem; background: rgba(30, 41, 59, 0.6); border: 1px solid #475569; border-radius: 4px;">
-              <div style="font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
+            <div style="padding: 1rem; background: var(--col-surface-2); border: 1px solid var(--col-border); border-radius: 4px;">
+              <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--col-text-3); letter-spacing: 0.05em; margin-bottom: 0.5rem;">
                 Carrier Node Alpha (Primary)
               </div>
-              <div id="carrier-alpha-val" style="font-family: monospace; font-size: 1.15rem; font-weight: bold; color: #4ade80;">
+              <div id="carrier-alpha-val" style="font-family: monospace; font-size: 1.15rem; font-weight: bold; color: var(--col-accent);">
                 SIGNAL [EMITTING]
               </div>
               <button id="broadcast-beacon-btn" type="button" class="btn btn--secondary" style="margin-top: 0.75rem; width: 100%; font-size: 0.8rem;">
@@ -89,24 +89,24 @@ export class CrossTabLayer implements PuzzleLayer {
               </button>
             </div>
 
-            <div style="padding: 1rem; background: rgba(30, 41, 59, 0.6); border: 1px solid #475569; border-radius: 4px;">
-              <div style="font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
+            <div style="padding: 1rem; background: var(--col-surface-2); border: 1px solid var(--col-border); border-radius: 4px;">
+              <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--col-text-3); letter-spacing: 0.05em; margin-bottom: 0.5rem;">
                 Carrier Node Beta (Secondary)
               </div>
-              <div id="carrier-beta-val" style="font-family: monospace; font-size: 1.15rem; font-weight: bold; color: #94a3b8;">
+              <div id="carrier-beta-val" style="font-family: monospace; font-size: 1.15rem; font-weight: bold; color: var(--col-text-3);">
                 AWAITING PEER...
               </div>
-              <div id="carrier-beta-time" style="font-size: 0.75rem; color: #64748b; margin-top: 0.75rem;">
+              <div id="carrier-beta-time" style="font-size: 0.75rem; color: var(--col-text-3); margin-top: 0.75rem;">
                 Secondary terminal offline
               </div>
             </div>
           </div>
 
-          <div id="reconstructed-signal-banner" style="padding: 0.85rem; background: rgba(15, 23, 42, 0.9); border: 1px dashed #64748b; border-radius: 4px; text-align: center; font-family: monospace;">
-            <span style="font-size: 0.75rem; display: block; color: #94a3b8; margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em;">
+          <div id="reconstructed-signal-banner" style="padding: 0.85rem; background: var(--col-mono-bg); border: 1px dashed var(--col-border-2); border-radius: 4px; text-align: center; font-family: monospace;">
+            <span style="font-size: 0.75rem; display: block; color: var(--col-text-2); margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em;">
               Combined Intercept Decryption Key
             </span>
-            <strong id="reconstructed-signal-text" style="font-size: 1.25rem; color: #f8fafc; letter-spacing: 0.08em;">
+            <strong id="reconstructed-signal-text" style="font-size: 1.25rem; color: var(--col-accent); letter-spacing: 0.08em;">
               AWAITING DUAL-CHANNEL CARRIER TELEMETRY
             </strong>
           </div>
@@ -290,7 +290,7 @@ export class CrossTabLayer implements PuzzleLayer {
         hasBeta = true;
         if (betaVal) {
           betaVal.textContent = `${s.fragmentValue} [SYNCHRONIZED]`;
-          betaVal.style.color = '#4ade80';
+          betaVal.style.color = 'var(--col-success)';
         }
         if (betaTime) {
           betaTime.textContent = `Carrier aligned \u2022 ${new Date(s.timestamp).toLocaleTimeString()}`;
@@ -302,7 +302,7 @@ export class CrossTabLayer implements PuzzleLayer {
       const fullKey = 'SIGNAL-SYNCHRONIZED';
       if (bannerText) {
         bannerText.textContent = fullKey;
-        bannerText.style.color = '#4ade80';
+        bannerText.style.color = 'var(--col-success)';
       }
       if (answerInput && !answerInput.value) {
         answerInput.value = fullKey;
