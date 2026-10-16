@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Base — Reset, typography defaults, utilities (Cybersecurity Neural Canvas)
+   Base — Reset, typography defaults, utilities (Cyber Hacker CRT Terminal)
    ========================================================================== */
 
 /* Box model reset */
@@ -20,18 +20,16 @@ html {
 }
 
 body {
-  background-color: var(--col-bg);
+  background-color: #000000;
   background-image: 
-    radial-gradient(circle at 80% 20%, rgba(0, 229, 255, 0.12) 0%, transparent 40%),
-    radial-gradient(circle at 15% 45%, rgba(168, 85, 247, 0.15) 0%, transparent 45%),
-    radial-gradient(circle at 50% 90%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
-    linear-gradient(rgba(168, 85, 247, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 229, 255, 0.05) 1px, transparent 1px),
-    radial-gradient(circle at 50% 50%, rgba(0, 229, 255, 0.2) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 100% 100%, 36px 36px, 36px 36px, 18px 18px;
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.25) 1px, transparent 1px, transparent 2px),
+    linear-gradient(rgba(0, 255, 65, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 65, 0.035) 1px, transparent 1px),
+    radial-gradient(circle at 50% 50%, rgba(0, 255, 65, 0.12) 1px, transparent 1px);
+  background-size: 100% 3px, 32px 32px, 32px 32px, 16px 16px;
   background-attachment: fixed;
   color: var(--col-text-1);
-  font-family: var(--font-ui);
+  font-family: var(--font-mono);
   font-size: var(--text-base);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
@@ -45,6 +43,7 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 700;
   color: var(--col-text-1);
   letter-spacing: -0.01em;
+  font-family: var(--font-mono);
 }
 
 /* Paragraphs */
@@ -74,7 +73,7 @@ button {
 
 button:disabled {
   cursor: not-allowed;
-  opacity: 0.45;
+  opacity: 0.4;
 }
 
 /* Inputs base reset */
@@ -101,34 +100,34 @@ hr {
 :focus-visible {
   outline: 2px solid var(--col-accent);
   outline-offset: 2px;
-  box-shadow: 0 0 12px rgba(0, 229, 255, 0.6);
+  box-shadow: 0 0 12px rgba(0, 255, 65, 0.7);
   border-radius: var(--radius-sm);
 }
 
 /* Text selection */
 ::selection {
-  background-color: rgba(168, 85, 247, 0.4);
-  color: #ffffff;
+  background-color: rgba(0, 255, 65, 0.4);
+  color: #000000;
 }
 
-/* Custom Scrollbars */
+/* Custom Phosphor CRT Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #060714;
+  background: #000000;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(168, 85, 247, 0.3);
+  background: #0d3a16;
   border-radius: var(--radius-sm);
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--col-accent);
-  box-shadow: 0 0 10px rgba(0, 229, 255, 0.6);
+  box-shadow: 0 0 10px #00ff41;
 }
 
 /* ==========================================================================

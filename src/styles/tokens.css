@@ -1,64 +1,59 @@
 /* ==========================================================================
-   Design Tokens — Mystery Box (Cybersecurity Neural Interface)
-   Electric Cyan, Neon Violet, Deep Midnight Indigo, and Circuit Glow
-   Matches Cyber Security Padlock & Cryptographic Neural Network Aesthetic
+   Design Tokens — Mystery Box (Cyber Hacker Terminal HUD)
+   Pitch Black, Classic Phosphor Green, CRT Scanlines, and Wireframe HUD
+   Matches Cybersecurity Matrix Terminal Console Aesthetic
    ========================================================================== */
 
 :root {
   /* ---------------------------------------------------------------------- */
-  /* Color palette — Midnight Cyber Space, Electric Cyan, Neon Violet       */
+  /* Color palette — Pitch Black, Phosphor Terminal Green                    */
   /* ---------------------------------------------------------------------- */
 
-  /* Backgrounds: Deep midnight indigo & cyber space void */
-  --col-bg:              #060714;   /* Deep midnight cyber canvas            */
-  --col-surface:         #0d0b24;   /* Primary cyber workstation surface     */
-  --col-surface-2:       #141138;   /* Elevated cyber panel / card           */
-  --col-surface-3:       #1c174c;   /* Elevated hover & active module        */
-  --col-mono-bg:         #080718;   /* Low-level telemetry / raw log canvas  */
+  /* Backgrounds: Pitch black CRT canvas & deep green terminal surfaces */
+  --col-bg:              #000000;   /* Pitch black CRT terminal canvas       */
+  --col-surface:         #020904;   /* Primary terminal HUD console surface  */
+  --col-surface-2:       #051509;   /* Elevated wireframe module / card      */
+  --col-surface-3:       #0a2410;   /* Active module / hovered control       */
+  --col-mono-bg:         #010502;   /* Deepest console buffer canvas         */
 
-  /* Borders & technical cyber separators */
-  --col-border:          rgba(168, 85, 247, 0.22); /* Subtle cyber violet boundary   */
-  --col-border-2:        rgba(0, 229, 255, 0.38);  /* Electric cyan active border    */
-  --col-border-subtle:   rgba(139, 92, 246, 0.14); /* Subdued grid hairline         */
+  /* Borders & technical terminal separators */
+  --col-border:          #0d3a16;   /* Subtle terminal wireframe border      */
+  --col-border-2:        #186027;   /* Elevated wireframe panel border       */
+  --col-border-glow:     #00ff41;   /* Active phosphor green glowing border  */
+  --col-border-subtle:   #07200c;   /* Hairline CRT grid divider             */
 
-  /* Text: High legibility luminous off-white & cyber lavender */
-  --col-text-1:          #f8fafd;   /* Primary luminous white                */
-  --col-text-2:          #a5b4fc;   /* Secondary cyber lavender / slate      */
-  --col-text-3:          #6366f1;   /* Technical metadata, labels & hashes   */
+  /* Text: High contrast luminous phosphor mint-white & neon green */
+  --col-text-1:          #f0fdf4;   /* Primary luminous white-mint           */
+  --col-text-2:          #4ade80;   /* Secondary bright phosphor green       */
+  --col-text-3:          #166534;   /* Technical metadata, labels & hashes   */
 
-  /* Primary Accent — Electric Neon Cyan (Cryptographic Signal & Laser) */
-  --col-accent:          #00e5ff;   /* Electric neon cyan                    */
-  --col-accent-hover:    #38bdf8;   /* Bright laser cyan hover               */
-  --col-accent-dim:      rgba(0, 229, 255, 0.22);  /* Subdued cyan outline   */
-  --col-accent-subtle:   rgba(0, 229, 255, 0.08);  /* Ambient cyan wash      */
-  --col-accent-text:     #00f0ff;   /* Neon cyan text highlight              */
-
-  /* Secondary Accent — Electric Violet / Cyber Purple */
-  --col-violet:          #a855f7;   /* Electric violet                       */
-  --col-violet-dim:      rgba(168, 85, 247, 0.25);
-  --col-violet-glow:     rgba(168, 85, 247, 0.45);
-  --col-magenta:         #d946ef;   /* Cyber magenta                         */
+  /* Primary Accent — Phosphor Terminal Green (#00ff41) */
+  --col-accent:          #00ff41;   /* Classic cyber hacker phosphor green   */
+  --col-accent-hover:    #22c55e;   /* Bright neon green hover state         */
+  --col-accent-dim:      rgba(0, 255, 65, 0.22);  /* Subdued green outline   */
+  --col-accent-subtle:   rgba(0, 255, 65, 0.08);  /* Ambient phosphor wash   */
+  --col-accent-text:     #00ff41;   /* Bright phosphor text highlight        */
 
   /* Verified State — Restrained Emerald (Authenticated, Passed, Sealed) */
-  --col-success:         #10b981;   /* Terminal verified emerald             */
-  --col-success-hover:   #059669;   /* Deep emerald hover                    */
-  --col-success-dim:     rgba(16, 185, 129, 0.16); /* Subtle emerald backdrop*/
-  --col-success-text:    #34d399;   /* Emerald text indicator                */
+  --col-success:         #00ff66;   /* Authenticated terminal green          */
+  --col-success-hover:   #10b981;   /* Deep emerald hover                    */
+  --col-success-dim:     rgba(0, 255, 102, 0.16); /* Subtle green backdrop   */
+  --col-success-text:    #00ff66;   /* Emerald text indicator                */
 
-  /* Alert / Error / Timeout — Neon Crimson */
-  --col-error:           #f43f5e;   /* Cyber rose/crimson alert              */
-  --col-error-dim:       rgba(244, 63, 94, 0.16);  /* Alert backdrop         */
+  /* Alert / Error / Timeout — Terminal Red Alert */
+  --col-error:           #ef4444;   /* Crimson intrusion warning             */
+  --col-error-dim:       rgba(239, 68, 68, 0.16); /* Alert backdrop          */
 
   /* System Info / Telemetry */
-  --col-info:            #00e5ff;   /* Cyan telemetry metadata               */
-  --col-info-dim:        rgba(0, 229, 255, 0.15);
+  --col-info:            #4ade80;   /* Green telemetry metadata              */
+  --col-info-dim:        rgba(74, 222, 128, 0.15);
 
   /* ---------------------------------------------------------------------- */
   /* Typography                                                              */
   /* ---------------------------------------------------------------------- */
 
   --font-editorial:      'JetBrains Mono', 'Fira Code', 'Roboto Mono', Consolas, monospace;
-  --font-ui:             'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-ui:             'JetBrains Mono', 'Fira Code', 'Roboto Mono', ui-monospace, Menlo, Consolas, monospace;
   --font-mono:           'JetBrains Mono', 'Fira Code', 'Roboto Mono', ui-monospace, Menlo, Consolas, monospace;
 
   /* Type scale */
@@ -107,15 +102,15 @@
   /* Geometry                                                                */
   /* ---------------------------------------------------------------------- */
 
-  --radius-sm:           4px;
-  --radius-md:           6px;
-  --radius-lg:           8px;
+  --radius-sm:           2px;
+  --radius-md:           3px;
+  --radius-lg:           4px;
 
-  /* Cyber Glow & Glassmorphism Shadows */
-  --shadow-panel:        0 8px 32px rgba(6, 7, 20, 0.8), 0 0 1px rgba(168, 85, 247, 0.35);
-  --shadow-active:       0 0 24px rgba(0, 229, 255, 0.35), 0 0 45px rgba(168, 85, 247, 0.2);
-  --shadow-verified:     0 0 24px rgba(16, 185, 129, 0.35);
-  --shadow-cyber:        0 0 30px rgba(168, 85, 247, 0.25);
+  /* Phosphor Terminal Glow & Wireframe Shadows */
+  --shadow-panel:        0 8px 30px rgba(0, 0, 0, 0.9), 0 0 1px #0d3a16;
+  --shadow-active:       0 0 20px rgba(0, 255, 65, 0.35), 0 0 40px rgba(0, 255, 65, 0.15);
+  --shadow-verified:     0 0 20px rgba(0, 255, 102, 0.35);
+  --shadow-terminal:     0 0 25px rgba(0, 255, 65, 0.2);
 }
 
 /* Reduced motion preference */
